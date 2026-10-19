@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/15 18:58:29 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/19 18:05:55 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,7 +52,7 @@ void	log_status(t_hub *hub, t_coder *coder, char *msg)
 {
 	long	time;
 
-	time = get_curr_timestamp(hub);
+	time = get_time(0) - hub->start_time;
 	if (time == -1)
 		return ;
 	pthread_mutex_lock(&hub->log_lock);

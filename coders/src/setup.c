@@ -40,7 +40,7 @@ static int	init_dongles(t_hub *hub)
 	{
 		dongles[i].id = i + 1;
 		dongles[i].is_available = 1;
-		dongles[i].released_at_ms = 0;
+		dongles[i].last_use = 0;
 		if (init_dongle_heap(&dongles[i], hub->n_coders) == 1
 			|| pthread_mutex_init(&dongles[i].lock, NULL) != 0
 			|| pthread_cond_init(&dongles[i].cond, NULL) != 0)
