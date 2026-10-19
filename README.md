@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by paduarte and alvespin.*
+*This project has been created as part of the 42 curriculum by alvespin.*
 
 ---
 # Codexion
@@ -16,7 +16,7 @@ It is an extension of the Dining Philosophers problem, first proposed by Djisktr
 #### Libraries
 ```c
 # include <pthread.h>   // for POSIX threads
-# include <stdio.h>		// for printf()
+# include <stdio.h>	// for printf()
 # include <stdlib.h>	// for atoi(), atol(), NULL
 # include <string.h>	// for strcmp()
 # include <unistd.h>	// for usleep()
@@ -24,19 +24,19 @@ It is an extension of the Dining Philosophers problem, first proposed by Djisktr
 
 typedef struct s_program
 {
-	int						n_coders;
-	size_t					time_burnout;
-	size_t					time_compile;
-	size_t					time_debug;
-	size_t					time_refactor;
-	int						compiles_target;
-	size_t					dongle_cooldown;
-	int					request_counter; // Global source for request_order
-	char				*scheduler;
-	long				start_time_ms;
-	int					should_stop; // Shared flag
-	t_dongle			*dongles;
-	t_coder				*coders;
+	int			n_coders;
+	size_t			time_burnout;
+	size_t			time_compile;
+	size_t			time_debug;
+	size_t			time_refactor;
+	int			compiles_target;
+	size_t			dongle_cooldown;
+	int			request_counter; // Global source for request_order
+	char			*scheduler;
+	long			start_time_ms;
+	int			stop_flag; // Shared flag
+	t_dongle		*dongles;
+	t_coder			*coders;
 	pthread_mutex_t		request_lock; // Protects request_counter
 	pthread_mutex_t		stop_lock; // Protects the should_stop bool flag
 	pthread_mutex_t		log_lock; // Protects the printf inside print_log
