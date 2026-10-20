@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/19 17:38:28 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/20 15:06:43 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,7 +32,7 @@ void	cleanup(t_hub *hub)
 	free(hub->coders);
 }
 
-static void	create_all_threads(t_hub *hub, pthread_t *monitor)
+static void	create_threads(t_hub *hub, pthread_t *monitor)
 {
 	int	i;
 
@@ -46,7 +46,7 @@ static void	create_all_threads(t_hub *hub, pthread_t *monitor)
 	pthread_create(monitor, NULL, monitor_routine, hub);
 }
 
-static void	join_all_threads(t_hub *hub, pthread_t monitor)
+static void	join_threads(t_hub *hub, pthread_t monitor)
 {
 	int	i;
 
@@ -68,8 +68,8 @@ int	main(int argc, char **argv)
 		return (1);
 	if (setup_program(&hub) == 1)
 		return (1);
-	create_all_threads(&hub, &monitor_thread);
-	join_all_threads(&hub, monitor_thread);
+	create_threads(&hub, &monitor_thread);
+	join_threads(&hub, monitor_thread);
 	cleanup(&hub);
 	return (0);
 }

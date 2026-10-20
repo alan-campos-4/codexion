@@ -1,16 +1,18 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main (1).c                                         :+:      :+:    :+:   */
+/*   multi_th.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/10/15 15:38:27 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/15 15:41:42 by alvespin         ###   ########.fr       */
+/*   Created: 2026/10/20 15:04:34 by alvespin          #+#    #+#             */
+/*   Updated: 2026/10/20 15:04:35 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "codexion.h"
+#include <pthread.h>
+#include <stdlib.h>
+#include <sys/time.h>
 
 #define TIMES_TO_COUNT 5
 #define N_CODERS 5

@@ -6,14 +6,14 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:11:03 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/19 18:02:00 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/20 14:50:20 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 static void	get_cooldown_deadline(t_dongle *dongle, int cooldown,
-	struct timespec *ts)
+		struct timespec *ts)
 {
 	long	deadline_ms;
 
@@ -28,8 +28,8 @@ dongle is available, its cooldown has passed, AND this coder is
 next in line (top of the waiting heap). Marks it as taken before
 returning.
 */
-static void	try_take_dongle(t_hub *hub, t_coder *coder, t_dongle *dongle,
-	char *msg)
+/*static void	try_take_dongle(t_hub *hub, t_coder *coder, t_dongle *dongle,
+		char *msg)
 {
 	long			remaining_cooldown_t;
 	struct timespec	ts;
@@ -37,15 +37,14 @@ static void	try_take_dongle(t_hub *hub, t_coder *coder, t_dongle *dongle,
 	pthread_mutex_lock(&dongle->lock);
 	coder->priority_ms = calculate_priority(hub, coder);
 	assign_request_order(hub, coder);
-	remaining_cooldown_t = get_time(dongle->last_use);
+	remaining_cooldown_t = get_time(0) - dongle->last_use;
 	min_heap_push(hub, &dongle->heap, coder);
-	while ((!dongle->is_available
-			|| remaining_cooldown_t < hub->dongle_cooldown
+	while ((!dongle->is_available || remaining_cooldown_t < hub->dongle_cooldown
 			|| dongle->heap.data[0] != coder) && !check_stop_flag(hub))
 	{
 		get_cooldown_deadline(dongle, hub->dongle_cooldown, &ts);
 		pthread_cond_timedwait(&dongle->cond, &dongle->lock, &ts);
-		remaining_cooldown_t = get_time(dongle->last_use);
+		remaining_cooldown_t = get_time(0) - dongle->last_use;
 	}
 	if (check_stop_flag(hub))
 	{
@@ -56,13 +55,41 @@ static void	try_take_dongle(t_hub *hub, t_coder *coder, t_dongle *dongle,
 	log_status(hub, coder, msg);
 	min_heap_pop(&dongle->heap, hub);
 	pthread_mutex_unlock(&dongle->lock);
-}
+}*/
 
 /*
 Attempt to use both dongles from a coder:
 Left and right side. But first, choose the one to take
 first based on their dongle_id.
 */
+static int	try_take_dongle(t_hub *hub, t_coder *coder, t_dongle *dongle, char *msg)
+{
+	long			remaining_cooldown_t;
+	struct timespec	ts;
+
+	while ((!dongle->is_available || remaining_cooldown_t < hub->dongle_cooldown
+			|| dongle->heap.data[0] != coder) && !check_stop_flag(hub))
+	{
+		get_cooldown_deadline(dongle, hub->dongle_cooldown, &ts);
+		pthread_cond_timedwait(&dongle->cond, &dongle->lock, &ts);
+		remaining_cooldown_t = get_time(0) - dongle->last_use;
+	}
+	pthread_mutex_lock(&dongle->lock);
+	if (!dongle->is_available)
+	{
+		pthread_mutex_unlock(&dongle->lock);
+		usleep(1000);
+		return (1);
+	}
+	else
+	{
+		dongle->is_available = 1;
+		pthread_mutex_unlock(&dongle->lock);
+		log_status(coder->hub, coder, msg);
+		return (0);
+	}
+}
+
 int	take_both_dongles(t_hub *hub, t_coder *coder)
 {
 	t_dongle	*first_place;
