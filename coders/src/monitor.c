@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:35:37 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 13:08:48 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 13:59:03 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,18 +16,18 @@ void	wakeup_coders(t_coder *coders)
 {
 	int	i;
 
-	pthread_mutex_lock(&coders->hub->lock);
+	pthread_mutex_lock(&coders->hub->sim_lock);
 	pthread_cond_broadcast(&coders->hub->cond);
-	pthread_mutex_unlock(&coders->hub->lock);
+	pthread_mutex_unlock(&coders->hub->sim_lock);
 	i = 0;
 	while (i < coders->hub->n_coders)
 	{
-		pthread_mutex_lock(&coders[i].dongle_l->lock);
-		pthread_cond_broadcast(&coders[i].dongle_l->cond);
-		pthread_mutex_unlock(&coders[i].dongle_l->lock);
-		pthread_mutex_lock(&coders[i].dongle_r->lock);
-		pthread_cond_broadcast(&coders[i].dongle_r->cond);
-		pthread_mutex_unlock(&coders[i].dongle_r->lock);
+		pthread_mutex_lock(&coders[i].first_dongle->lock);
+		pthread_cond_broadcast(&coders[i].first_dongle->cond);
+		pthread_mutex_unlock(&coders[i].first_dongle->lock);
+		pthread_mutex_lock(&coders[i].second_dongle->lock);
+		pthread_cond_broadcast(&coders[i].second_dongle->cond);
+		pthread_mutex_unlock(&coders[i].second_dongle->lock);
 		i++;
 	}
 }
@@ -36,38 +36,38 @@ int	burnout_handle(t_coder *coders, int i, int last_compile)
 {
 	if (last_compile)
 	{
-		if (get_time(0) - last_compile
-			< (int)coders->hub->time_burnout * 1000)
-			return (0);
+		if (get_curr_time() - last_compile
+			< (int)coders->hub->burnout_time * MS_IN_US)
+			return (SUCCESS);
 	}
 	else
 	{
-		if (get_time(0) - coders->hub->start_time
-			< (int)coders->hub->time_burnout * 1000)
-			return (0);
+		if (get_curr_time() - coders->hub->start_time
+			< (int)coders->hub->burnout_time * MS_IN_US)
+			return (SUCCESS);
 	}
-	pthread_mutex_lock(&coders->hub->lock);
-	coders->hub->stop_flag = 1;
-	pthread_mutex_unlock(&coders->hub->lock);
-	log_status(coders->hub, &coders[i], "burned out");
+	pthread_mutex_lock(&coders->hub->sim_lock);
+	coders->hub->stop_sim = 1;
+	pthread_mutex_unlock(&coders->hub->sim_lock);
+	print_log("has burned out", &coders[i], coders->hub);
 	wakeup_coders(coders);
-	return (1);
+	return (FAIL);
 }
 
 int	routine_primer(t_coder *coders, int *i, int *all_done)
 {
 	if (*all_done)
 	{
-		pthread_mutex_lock(&coders->hub->lock);
-		coders->hub->stop_flag = 1;
-		pthread_mutex_unlock(&coders->hub->lock);
+		pthread_mutex_lock(&coders->hub->sim_lock);
+		coders->hub->stop_sim = 1;
+		pthread_mutex_unlock(&coders->hub->sim_lock);
 		wakeup_coders(coders);
-		return (1);
+		return (FAIL);
 	}
 	*i = 0;
 	*all_done = 1;
 	usleep(100);
-	return (0);
+	return (SUCCESS);
 }
 
 void	*monitor_routine(void *arg)
@@ -79,19 +79,19 @@ void	*monitor_routine(void *arg)
 	int		completed_compiles;
 
 	coders = (t_coder *)arg;
-	if (wait_for_others(coders->hub))
+	if (wait_for_start(coders))
 		return (NULL);
 	i = 0;
 	all_done = 1;
 	while (1)
 	{
 		pthread_mutex_lock(&coders[i].lock);
-		completed_compiles = coders[i].n_compiles;
+		completed_compiles = coders[i].completed_compiles;
 		last_compile = coders[i].last_compile;
 		pthread_mutex_unlock(&coders[i].lock);
 		if (burnout_handle(coders, i++, last_compile))
 			return (NULL);
-		if (completed_compiles < coders->hub->n_compiles_required)
+		if (completed_compiles < coders->hub->target_compiles)
 			all_done = 0;
 		if (i == coders->hub->n_coders
 			&& routine_primer(coders, &i, &all_done))

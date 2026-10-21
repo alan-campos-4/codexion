@@ -6,28 +6,11 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:47:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 12:48:24 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 13:58:09 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-
-static void	swap(t_request *x, t_request *y)
-{
-	t_request	tmp;
-
-	tmp = *y;
-	*y = *x;
-	*x = tmp;
-}
-
-int	pick_metric(t_coder *coder)
-{
-	if (coder->hub->scheduler == EDF)
-		return (coder->last_compile + (coder->hub->time_burnout * 1000));
-	else
-		return (get_time(0));
-}
 
 static void	bubble_up(t_request *requests, int i)
 {

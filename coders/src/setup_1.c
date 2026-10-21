@@ -6,15 +6,107 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:44:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 12:41:42 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 14:12:15 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-/**
- * Initialize the hub's dongle array.
- */
+pthread_t	*init_threads(t_coder *coders)
+{
+	pthread_t	*t;
+	int		i;
+
+	t = malloc(sizeof(pthread_t) * coders->hub->n_coders);
+	if (!t)
+		return (NULL);
+	i = 0;
+	while (i < coders->hub->n_coders)
+	{
+		if (pthread_create(t + i, NULL, &coder_routine, coders + i))
+		{
+			pthread_mutex_lock(&coders->hub->sim_lock);
+			coders->hub->start_sim = 1;
+			coders->hub->stop_sim = 1;
+			pthread_mutex_unlock(&coders->hub->sim_lock);
+			wakeup_coders(coders);
+			while (i-- > 0)
+				pthread_join(t[i], NULL);
+			free(t);
+			return (NULL);
+		}
+		i++;
+	}
+	return (t);
+}
+
+int	assign_coder_attr(t_coder *coders, t_dongle *dongles,
+	t_hub *hub)
+{
+	int	i;
+
+	if (!coders || !dongles || !hub || !hub)
+		return (FAIL);
+	i = 0;
+	hub->coders = coders;
+	while (i < hub->n_coders)
+	{
+		coders[i].hub = hub;
+		coders[i].hub = hub;
+		if (coders[i].id != hub->n_coders)
+		{
+			coders[i].first_dongle = &dongles[i];
+			coders[i].second_dongle = &dongles[(i + 1) % hub->n_coders];
+		}
+		else
+		{
+			coders[i].first_dongle = &dongles[(i + 1) % hub->n_coders];
+			coders[i].second_dongle = &dongles[i];
+		}
+		i++;
+	}
+	return (SUCCESS);
+}
+
+int	init_sim(t_hub *hub, t_coder **coders,
+	t_dongle **dongles)
+{
+	if (!hub)
+		return (FAIL);
+	else if (!hub->n_coders)
+		return (ZERO_CODERS);
+	if (init_hub(hub))
+		return (FAIL);
+	*coders = init_coders(hub->n_coders);
+	*dongles = init_dongles(hub->n_coders);
+	if (!*coders || !*dongles)
+	{
+		cleanup_all(*dongles, *coders, hub);
+		return (FAIL);
+	}
+	assign_coder_attr(*coders, *dongles, hub);
+	return (SUCCESS);
+}
+
+void	sim_start(t_coder *coders)
+{
+	while (1)
+	{
+		pthread_mutex_lock(&coders->hub->sim_lock);
+		if (coders->hub->ready_count == coders->hub->n_coders + 1L)
+			break ;
+		pthread_mutex_unlock(&coders->hub->sim_lock);
+		usleep(MS_IN_US);
+	}
+	coders->hub->start_time = get_curr_time();
+	coders->hub->start_sim = 1;
+	pthread_cond_broadcast(&coders->hub->cond);
+	pthread_mutex_unlock(&coders->hub->sim_lock);
+}
+
+
+
+/*
 static int	init_dongles(t_hub *hub)
 {
 	int			i;
@@ -38,9 +130,6 @@ static int	init_dongles(t_hub *hub)
 	return (0);
 }
 
-/**
- * Initialize the compiler's coder array.
- */
 static int	init_coders(t_hub *hub)
 {
 	int		i;
@@ -66,9 +155,6 @@ static int	init_coders(t_hub *hub)
 	return (0);
 }
 
-/**
- * Initialize all the compiler's variables not derived from the command line.
- */
 int	setup_program(t_hub *hub)
 {
 	hub->start_flag = 0;
@@ -90,7 +176,7 @@ int	setup_program(t_hub *hub)
 	if (pthread_cond_init(&hub->cond, NULL) != 0)
 		return (1);
 	return (0);
-}
+}*/
 
 /*
 int	init_coders(t_hub *hub, int size)
@@ -136,13 +222,13 @@ int	init_dongles(t_hub *hub, int size)
 	return (0);
 }
 
-int	parse_args(int num_args, char **argv)
+int	parse_hub(int num_hub, char **argv)
 {
 	int	i;
 	int	j;
 
 	i = 1;
-	while (i < num_args)
+	while (i < num_hub)
 	{
 		j = 0;
 		while (argv[i][j])
@@ -158,7 +244,7 @@ int	parse_args(int num_args, char **argv)
 
 int	init(t_hub *hub, int argc, char **argv)
 {
-	if (parse_args(argc - 1, argv))
+	if (parse_hub(argc - 1, argv))
 		return (1);
 	hub->n_coders = atoi(argv[1]);
 	hub->time_burnout = atoi(argv[2]);

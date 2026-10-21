@@ -6,91 +6,65 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 13:04:53 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 14:10:55 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-static void	sim_start(t_hub *hub)
+static int	create_monitor(pthread_t *monitor, t_coder *coders)
 {
-	while (1)
-	{
-		pthread_mutex_lock(&hub->lock);
-		if (hub->ready_count == hub->n_coders + 1)
-		{
-			break ;
-		}
-		pthread_mutex_unlock(&hub->lock);
-		usleep(1000);
-	}
-	hub->start_time = get_time(0);
-	hub->start_flag = 1;
-	pthread_cond_broadcast(&hub->cond);
-	pthread_mutex_unlock(&hub->lock);
+	if (!pthread_create(monitor, NULL, monitor_routine, coders))
+		return (SUCCESS);
+	pthread_mutex_lock(&coders->hub->sim_lock);
+	coders->hub->stop_sim = 1;
+	coders->hub->start_sim = 1;
+	pthread_cond_broadcast(&coders->hub->cond);
+	pthread_mutex_unlock(&coders->hub->sim_lock);
+	return (FAIL);
 }
 
-void	cleanup(t_hub *hub)
+int	codexion(t_coder *coders, t_dongle *dongles, t_hub *hub)
 {
-	int	i;
+	pthread_t	*c_threads;
+	pthread_t	monitor;
+	int		monitor_status;
 
-	i = 0;
-	while (i < hub->n_coders)
+	c_threads = init_threads(coders);
+	if (!c_threads)
 	{
-		//free(hub->dongles[i].heap.data);
-		pthread_mutex_destroy(&hub->dongles[i].lock);
-		pthread_cond_destroy(&hub->dongles[i].cond);
-		pthread_mutex_destroy(&hub->coders[i].time_lock);
-		i++;
+		cleanup_all(dongles, coders, hub);
+		return (FAIL);
 	}
-	pthread_cond_destroy(&hub->cond);
-	pthread_mutex_destroy(&hub->lock);
-	pthread_mutex_destroy(&hub->log_lock);
-	pthread_mutex_destroy(&hub->stop_lock);
-	pthread_mutex_destroy(&hub->request_lock);
-	free(hub->dongles);
-	free(hub->coders);
+	monitor_status = create_monitor(&monitor, coders);
+	if (monitor_status == FAIL)
+		wait_on_threads(c_threads, hub->n_coders);
+	else
+	{
+		sim_start(coders);
+		wait_on_threads(c_threads, hub->n_coders);
+		pthread_join(monitor, NULL);
+	}
+	free(c_threads);
+	cleanup_all(dongles, coders, hub);
+	return (monitor_status);
 }
 
-static void	create_threads(t_hub *hub, pthread_t *monitor)
-{
-	int	i;
-
-	i = 0;
-	while (i < hub->n_coders)
-	{
-		pthread_create(&hub->coders[i].thread, NULL, coder_routine,
-			&hub->coders[i]);
-		i++;
-	}
-	pthread_create(monitor, NULL, monitor_routine, hub);
-}
-
-static void	join_threads(t_hub *hub, pthread_t monitor)
-{
-	int	i;
-
-	i = 0;
-	while (i < hub->n_coders)
-	{
-		pthread_join(hub->coders[i].thread, NULL);
-		i++;
-	}
-	pthread_join(monitor, NULL);
-}
-
-int	main(int argc, char **argv)
+int	main(int ac, char **av)
 {
 	t_hub		hub;
-	pthread_t	monitor_thread;
+	t_coder		*coders;
+	t_dongle	*dongles;
+	int			init_status;
 
-	if (parse_args(&hub, argc, argv) == 1)
-		return (1);
-	if (setup_program(&hub) == 1)
-		return (1);
-	create_threads(&hub, &monitor_thread);
-	sim_start(&hub);
-	join_threads(&hub, monitor_thread);
-	cleanup(&hub);
-	return (0);
+	if (ft_parser(ac, av, &hub))
+	{
+		fprintf(stderr, "Invalid arguments! example usage: ./codexion"
+			" 5 500 100 100 100 10 60 edf\n");
+		return (FAIL);
+	}
+	init_status = init_sim(&hub, &coders, &dongles);
+	if (init_status == SUCCESS)
+		return (codexion(coders, dongles, &hub));
+	return (init_status);
 }
