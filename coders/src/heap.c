@@ -6,105 +6,96 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:47:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/15 18:47:04 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 12:48:24 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-/*
-- sift_up: moves a too-small node up, swapping with its parent,
-until the min-heap property holds again.
-When it's used: right after a new element is added at the very
-bottom (end) of the array — it needs to travel up to its correct spot.
-*/
-static void	sift_up(t_heap *heap, int i, t_hub *hub)
+static void	swap(t_request *x, t_request *y)
 {
-	int	parent_i;
+	t_request	tmp;
+
+	tmp = *y;
+	*y = *x;
+	*x = tmp;
+}
+
+int	pick_metric(t_coder *coder)
+{
+	if (coder->hub->scheduler == EDF)
+		return (coder->last_compile + (coder->hub->time_burnout * 1000));
+	else
+		return (get_time(0));
+}
+
+static void	bubble_up(t_request *requests, int i)
+{
+	int	parent_idx;
 
 	while (i > 0)
 	{
-		parent_i = (i - 1) / 2;
-		if (!is_higher_priority(hub, heap->data[i], heap->data[parent_i]))
-			return ;
-		ft_swap(&heap->data[i], &heap->data[parent_i]);
-		i = parent_i;
+		parent_idx = (i - 1) / 2;
+		if (requests[i].metric < requests[parent_idx].metric)
+			swap(&requests[parent_idx], &requests[i]);
+		else
+			break ;
+		i = parent_idx;
 	}
 }
 
-/*
-- sift_down: moves a too-large node down, swapping with its
-SMALLER child, until the min-heap property holds again.
-When it's used: right after removing the root (the min) and
-moving the last leaf into its place — that displaced element
-needs to sink down to where it actually belongs.
-- get_smaller_child: assistant to the sift_down function
-*/
-static int	get_smaller_child(t_heap *heap, int i, t_hub *hub)
+static void	heapify(t_request *requests, int parent, int size)
 {
-	int		smaller_i;
-	int		left_i;
-	int		right_i;
+	int	left_child_idx;
+	int	right_child_idx;
+	int	least;
 
-	left_i = 2 * i + 1;
-	right_i = 2 * i + 2;
-	smaller_i = i;
-	if (left_i < heap->size
-		&& is_higher_priority(hub, heap->data[left_i],
-			heap->data[smaller_i]))
-		smaller_i = left_i;
-	if (right_i < heap->size
-		&& is_higher_priority(hub, heap->data[right_i],
-			heap->data[smaller_i]))
-		smaller_i = right_i;
-	return (smaller_i);
-}
-
-static void	sift_down(t_heap *heap, int i, t_hub *hub)
-{
-	int				smaller_i;
-
+	least = parent;
 	while (1)
 	{
-		smaller_i = get_smaller_child(heap, i, hub);
-		if (smaller_i == i)
-			return ;
-		ft_swap(&heap->data[i], &heap->data[smaller_i]);
-		i = smaller_i;
+		left_child_idx = (parent * 2) + 1;
+		right_child_idx = (parent * 2) + 2;
+		if (left_child_idx < size && requests[left_child_idx].metric
+			< requests[parent].metric)
+			least = left_child_idx;
+		if (right_child_idx < size && requests[right_child_idx].metric
+			< requests[least].metric)
+			least = right_child_idx;
+		if (least == parent)
+			break ;
+		swap(&requests[least], &requests[parent]);
+		parent = least;
 	}
 }
 
-/*
-Add an elements from the heap.
-push calls sift_up (new node climbs to its correct spot).
-*/
-int	min_heap_push(t_hub *hub, t_heap *heap, t_coder *new_coder)
+void	add_request(t_heap *heap, int id, int metric)
 {
-	if (heap->size >= hub->n_coders)
-		return (1);
-	heap->data[heap->size] = new_coder;
-	heap->size++;
-	sift_up(heap, heap->size - 1, hub);
-	return (0);
+	if (!heap || (heap->size == 2))
+		return ;
+	heap->requests[heap->size].id = id;
+	heap->requests[heap->size].metric = metric;
+	bubble_up(heap->requests, heap->size);
+	heap->size += 1;
 }
 
-/*
-Remove an elements from the heap and return it.
-The one to return is always the first one in the array since
-its already sorted.
-pop calls sift_down (root replacement sinks to its correct spot).
-*/
-t_coder	*min_heap_pop(t_heap *heap, t_hub *hub)
+void	remove_request_top(t_heap *heap)
 {
-	t_coder	*last_element;
-	t_coder	*first_element;
+	if (!heap || !heap->size)
+		return ;
+	if (&heap->requests[0] != &heap->requests[heap->size - 1])
+		swap(&heap->requests[0], &heap->requests[heap->size - 1]);
+	heap->size -= 1;
+	heapify(heap->requests, 0, heap->size);
+	return ;
+}
 
-	if (heap->size <= 0)
-		return (NULL);
-	last_element = heap->data[heap->size - 1];
-	first_element = heap->data[0];
-	heap->data[0] = last_element;
-	heap->size--;
-	sift_down(heap, 0, hub);
-	return (first_element);
+void	pre_register_heaps(t_dongle *first, t_dongle *second,
+	t_coder *coder, int metric)
+{
+	pthread_mutex_lock(&first->lock);
+	pthread_mutex_lock(&second->lock);
+	add_request(&first->heap, coder->id, metric);
+	add_request(&second->heap, coder->id, metric);
+	pthread_mutex_unlock(&second->lock);
+	pthread_mutex_unlock(&first->lock);
 }

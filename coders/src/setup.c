@@ -6,23 +6,11 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:44:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/19 11:57:15 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 12:41:42 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-
-/**
- * Initialize the dongle's heap.
- */
-static int	init_dongle_heap(t_dongle *dongle, int capacity)
-{
-	dongle->heap.data = malloc(sizeof(t_coder *) * capacity);
-	if (!dongle->heap.data)
-		return (1);
-	dongle->heap.size = 0;
-	return (0);
-}
 
 /**
  * Initialize the hub's dongle array.
@@ -41,8 +29,7 @@ static int	init_dongles(t_hub *hub)
 		dongles[i].id = i + 1;
 		dongles[i].is_available = 1;
 		dongles[i].last_use = 0;
-		if (init_dongle_heap(&dongles[i], hub->n_coders) == 1
-			|| pthread_mutex_init(&dongles[i].lock, NULL) != 0
+		if (pthread_mutex_init(&dongles[i].lock, NULL) != 0
 			|| pthread_cond_init(&dongles[i].cond, NULL) != 0)
 			return (1);
 		i++;
@@ -84,18 +71,23 @@ static int	init_coders(t_hub *hub)
  */
 int	setup_program(t_hub *hub)
 {
-	hub->start_time = get_time(0);
+	hub->start_flag = 0;
 	hub->stop_flag = 0;
+	hub->ready_count = 0;
 	hub->request_counter = 0;
 	if (init_dongles(hub) == 1)
 		return (1);
 	if (init_coders(hub) == 1)
+		return (1);
+	if (pthread_mutex_init(&hub->lock, NULL) != 0)
 		return (1);
 	if (pthread_mutex_init(&hub->log_lock, NULL) != 0)
 		return (1);
 	if (pthread_mutex_init(&hub->stop_lock, NULL) != 0)
 		return (1);
 	if (pthread_mutex_init(&hub->request_lock, NULL) != 0)
+		return (1);
+	if (pthread_cond_init(&hub->cond, NULL) != 0)
 		return (1);
 	return (0);
 }

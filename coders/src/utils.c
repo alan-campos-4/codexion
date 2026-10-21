@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/19 18:05:55 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 12:26:05 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -56,7 +56,7 @@ void	log_status(t_hub *hub, t_coder *coder, char *msg)
 	if (time == -1)
 		return ;
 	pthread_mutex_lock(&hub->log_lock);
-	if (check_stop_flag(hub) && strcmp(msg, LOG_BURNOUT) != 1)
+	if (stop_program(hub) && strcmp(msg, LOG_BURNOUT) != 1)
 	{
 		pthread_mutex_unlock(&hub->log_lock);
 		return ;
@@ -73,7 +73,7 @@ racing with the monitor thread that may update it.
 /**
  * Safely checks the hub's stop_flag with its dedicated mutex.
  */
-int	check_stop_flag(t_hub *hub)
+int	stop_program(t_hub *hub)
 {
 	int	result;
 

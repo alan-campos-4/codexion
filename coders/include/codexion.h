@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/20 17:33:34 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 13:13:58 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,20 +27,26 @@
 # define LOG_REFACTOR "is refactroing"
 # define LOG_BURNOUT "burned out"
 
-typedef struct s_hub	t_hub;
-typedef struct s_coder	t_coder;
-
 typedef enum s_scheduler
 {
 	FIFO,
 	EDF,
 }						t_scheduler;
 
+typedef struct s_request
+{
+	int					id;
+	int					metric;
+}						t_request;
+
 typedef struct s_heap
 {
-	t_coder				**data;
+	t_request			requests[2];
 	int					size;
 }						t_heap;
+
+typedef struct s_hub	t_hub;
+typedef struct s_coder	t_coder;
 
 typedef struct dongle
 {
@@ -60,6 +66,7 @@ typedef struct s_coder
 	long				last_compile;
 	long				priority_ms;
 	pthread_t			thread;
+	pthread_mutex_t		lock;
 	pthread_mutex_t		time_lock;
 	t_dongle			*dongle_l;
 	t_dongle			*dongle_r;
@@ -78,37 +85,34 @@ typedef struct s_hub
 	t_scheduler			scheduler;
 	int					request_counter;
 	long				start_time;
+	int					start_flag;
 	int					stop_flag;
+	int					ready_count;
+	pthread_mutex_t		lock;
 	pthread_mutex_t		request_lock;
 	pthread_mutex_t		stop_lock;
 	pthread_mutex_t		log_lock;
+	pthread_cond_t		cond;
 	t_dongle			*dongles;
 	t_coder				*coders;
 }						t_hub;
 
 /*** coder.c ***/
 void					*coder_routine(void *arg);
-void					assign_request_order(t_hub *hub, t_coder *coder);
+int						wait_for_others(t_hub *hub);
 
 /*** monitor.c ***/
 void					*monitor_routine(void *arg);
 
 /*** dongles.c ***/
-int						take_both_dongles(t_hub *hub, t_coder *coder);
-void					release_both_dongle(t_coder *coder);
+int						get_dongles(t_coder *coder);
 
 /*** heap.c ***/
-int						min_heap_push(t_hub *hub, t_heap *heap,
-							t_coder *new_coder);
-t_coder					*min_heap_pop(t_heap *heap, t_hub *hub);
-
+int						pick_metric(t_coder *coder);
+void					add_request(t_heap *heap, int id, int metric);
+void					remove_request_top(t_heap *heap);
 void					pre_register_heaps(t_dongle *first, t_dongle *second,
 							t_coder *coder, int metric);
-
-/*** heap_utils.c ***/
-long					calculate_priority(t_hub *hub, t_coder *coder);
-int						is_higher_priority(t_hub *hub, t_coder *a, t_coder *b);
-void					ft_swap(t_coder **a, t_coder **b);
 
 /*** setup.c ***/
 int						setup_program(t_hub *hub);
@@ -118,8 +122,7 @@ int						parse_args(t_hub *hub, int argc, char **argv);
 
 /*** utils.c ***/
 long					get_time(long start_time);
-long					get_curr_timestamp(t_hub *hub);
 void					log_status(t_hub *hub, t_coder *coder, char *msg);
-int						check_stop_flag(t_hub *hub);
+int						stop_program(t_hub *hub);
 
 #endif

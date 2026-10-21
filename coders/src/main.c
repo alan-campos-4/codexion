@@ -6,11 +6,29 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/20 15:06:43 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 13:04:53 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
+
+static void	sim_start(t_hub *hub)
+{
+	while (1)
+	{
+		pthread_mutex_lock(&hub->lock);
+		if (hub->ready_count == hub->n_coders + 1)
+		{
+			break ;
+		}
+		pthread_mutex_unlock(&hub->lock);
+		usleep(1000);
+	}
+	hub->start_time = get_time(0);
+	hub->start_flag = 1;
+	pthread_cond_broadcast(&hub->cond);
+	pthread_mutex_unlock(&hub->lock);
+}
 
 void	cleanup(t_hub *hub)
 {
@@ -19,12 +37,14 @@ void	cleanup(t_hub *hub)
 	i = 0;
 	while (i < hub->n_coders)
 	{
-		free(hub->dongles[i].heap.data);
+		//free(hub->dongles[i].heap.data);
 		pthread_mutex_destroy(&hub->dongles[i].lock);
 		pthread_cond_destroy(&hub->dongles[i].cond);
 		pthread_mutex_destroy(&hub->coders[i].time_lock);
 		i++;
 	}
+	pthread_cond_destroy(&hub->cond);
+	pthread_mutex_destroy(&hub->lock);
 	pthread_mutex_destroy(&hub->log_lock);
 	pthread_mutex_destroy(&hub->stop_lock);
 	pthread_mutex_destroy(&hub->request_lock);
@@ -69,6 +89,7 @@ int	main(int argc, char **argv)
 	if (setup_program(&hub) == 1)
 		return (1);
 	create_threads(&hub, &monitor_thread);
+	sim_start(&hub);
 	join_threads(&hub, monitor_thread);
 	cleanup(&hub);
 	return (0);
