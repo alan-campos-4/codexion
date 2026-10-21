@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 14:06:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 14:08:52 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 17:07:59 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,14 +51,15 @@ int32_t	hub_cleanup(t_hub *hub, int32_t c,
 			int32_t s_lock, int32_t p_lock)
 {
 	if (!hub)
-		return (FAIL);
+		return (1);
 	if (c)
 		pthread_cond_destroy(&hub->cond);
 	if (s_lock)
-		pthread_mutex_destroy(&hub->sim_lock);
+		pthread_mutex_destroy(&hub->lock);
 	if (p_lock)
-		pthread_mutex_destroy(&hub->print_lock);
-	return (FAIL);
+		pthread_mutex_destroy(&hub->log_lock);
+	pthread_mutex_destroy(&hub->stop_lock);
+	return (1);
 }
 
 int32_t	cleanup_all(t_dongle *dongles, t_coder *coders,
@@ -72,5 +73,5 @@ int32_t	cleanup_all(t_dongle *dongles, t_coder *coders,
 	dongle_cleanup(dongles, n, n, n);
 	coder_cleanup(coders, hub);
 	hub_cleanup(hub, 1, 1, 1);
-	return (SUCCESS);
+	return (0);
 }

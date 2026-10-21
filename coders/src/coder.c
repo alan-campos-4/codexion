@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:33:11 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 13:56:44 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 17:07:17 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,48 +15,48 @@
 int	compile(t_coder *coder)
 {
 	pthread_mutex_lock(&coder->lock);
-	coder->last_compile = get_curr_time();
+	coder->last_compile = get_time(0);
 	pthread_mutex_unlock(&coder->lock);
-	if (print_log("is compiling", coder, coder->hub))
-		return (FAIL);
+	if (log_status("is compiling", coder, coder->hub))
+		return (1);
 	if (better_sleep(coder, (int)coder->hub->compile_time * MS_IN_US))
-		return (FAIL);
+		return (1);
 	pthread_mutex_lock(&coder->lock);
 	coder->completed_compiles += 1;
 	pthread_mutex_unlock(&coder->lock);
 	if (release_dongle(coder->first_dongle))
-		return (FAIL);
+		return (1);
 	if (release_dongle(coder->second_dongle))
-		return (FAIL);
-	return (SUCCESS);
+		return (1);
+	return (0);
 }
 
 int	debug(t_coder *coder)
 {
-	if (print_log("is debugging", coder, coder->hub))
-		return (FAIL);
+	if (log_status("is debugging", coder, coder->hub))
+		return (1);
 	if (better_sleep(coder, (int)coder->hub->debug_time * MS_IN_US))
-		return (FAIL);
-	return (SUCCESS);
+		return (1);
+	return (0);
 }
 
 int	refactor(t_coder *coder)
 {
-	if (print_log("is refactoring", coder, coder->hub))
-		return (FAIL);
+	if (log_status("is refactoring", coder, coder->hub))
+		return (1);
 	if (better_sleep(coder, (int)coder->hub->refactor_time * MS_IN_US))
-		return (FAIL);
-	return (SUCCESS);
+		return (1);
+	return (0);
 }
 
 int	wait_for_start(t_coder *coder)
 {
-	pthread_mutex_lock(&coder->hub->sim_lock);
+	pthread_mutex_lock(&coder->hub->lock);
 	coder->hub->ready_count++;
-	while (!coder->hub->start_sim)
-		pthread_cond_wait(&coder->hub->cond, &coder->hub->sim_lock);
-	pthread_mutex_unlock(&coder->hub->sim_lock);
-	return (SUCCESS);
+	while (!coder->hub->start_flag)
+		pthread_cond_wait(&coder->hub->cond, &coder->hub->lock);
+	pthread_mutex_unlock(&coder->hub->lock);
+	return (0);
 }
 
 void	*coder_routine(void *arg)
@@ -75,7 +75,7 @@ void	*coder_routine(void *arg)
 	{
 		if (better_sleep(coder,
 				((int)coder->hub->compile_time * MS_IN_US) / 2))
-			return (SUCCESS);
+			return (0);
 	}
 	while (1)
 	{

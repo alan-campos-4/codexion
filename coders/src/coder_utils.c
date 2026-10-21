@@ -16,10 +16,10 @@ int	release_dongle(t_dongle *dongle)
 {
 	pthread_mutex_lock(&dongle->lock);
 	dongle->is_available = 1;
-	dongle->last_use_time = get_curr_time();
+	dongle->last_use_time = get_time(0);
 	pthread_cond_broadcast(&dongle->cond);
 	pthread_mutex_unlock(&dongle->lock);
-	return (SUCCESS);
+	return (0);
 }
 
 void	*single_coder(t_coder *coder, t_dongle *dongle)
@@ -27,7 +27,7 @@ void	*single_coder(t_coder *coder, t_dongle *dongle)
 	pthread_mutex_lock(&dongle->lock);
 	dongle->is_available = 0;
 	pthread_mutex_unlock(&dongle->lock);
-	print_log("has taken dongle", coder, coder->hub);
+	log_status("has taken dongle", coder, coder->hub);
 	better_sleep(coder, (int)coder->hub->burnout_time * MS_IN_US);
 	return (NULL);
 }

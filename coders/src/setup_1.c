@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   setup.c                                            :+:      :+:    :+:   */
+/*   setup_1.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:44:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 14:12:15 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 17:18:29 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,10 +25,10 @@ pthread_t	*init_threads(t_coder *coders)
 	{
 		if (pthread_create(t + i, NULL, &coder_routine, coders + i))
 		{
-			pthread_mutex_lock(&coders->hub->sim_lock);
-			coders->hub->start_sim = 1;
-			coders->hub->stop_sim = 1;
-			pthread_mutex_unlock(&coders->hub->sim_lock);
+			pthread_mutex_lock(&coders->hub->lock);
+			coders->hub->start_flag = 1;
+			coders->hub->stop_flag = 1;
+			pthread_mutex_unlock(&coders->hub->lock);
 			wakeup_coders(coders);
 			while (i-- > 0)
 				pthread_join(t[i], NULL);
@@ -46,7 +46,7 @@ int	assign_coder_attr(t_coder *coders, t_dongle *dongles,
 	int	i;
 
 	if (!coders || !dongles || !hub || !hub)
-		return (FAIL);
+		return (1);
 	i = 0;
 	hub->coders = coders;
 	while (i < hub->n_coders)
@@ -65,43 +65,43 @@ int	assign_coder_attr(t_coder *coders, t_dongle *dongles,
 		}
 		i++;
 	}
-	return (SUCCESS);
+	return (0);
 }
 
 int	init_sim(t_hub *hub, t_coder **coders,
 	t_dongle **dongles)
 {
 	if (!hub)
-		return (FAIL);
+		return (1);
 	else if (!hub->n_coders)
-		return (ZERO_CODERS);
+		return (2);
 	if (init_hub(hub))
-		return (FAIL);
+		return (1);
 	*coders = init_coders(hub->n_coders);
 	*dongles = init_dongles(hub->n_coders);
 	if (!*coders || !*dongles)
 	{
 		cleanup_all(*dongles, *coders, hub);
-		return (FAIL);
+		return (1);
 	}
 	assign_coder_attr(*coders, *dongles, hub);
-	return (SUCCESS);
+	return (0);
 }
 
 void	sim_start(t_coder *coders)
 {
 	while (1)
 	{
-		pthread_mutex_lock(&coders->hub->sim_lock);
+		pthread_mutex_lock(&coders->hub->lock);
 		if (coders->hub->ready_count == coders->hub->n_coders + 1L)
 			break ;
-		pthread_mutex_unlock(&coders->hub->sim_lock);
+		pthread_mutex_unlock(&coders->hub->lock);
 		usleep(MS_IN_US);
 	}
-	coders->hub->start_time = get_curr_time();
-	coders->hub->start_sim = 1;
+	coders->hub->start_time = get_time(0);
+	coders->hub->start_flag = 1;
 	pthread_cond_broadcast(&coders->hub->cond);
-	pthread_mutex_unlock(&coders->hub->sim_lock);
+	pthread_mutex_unlock(&coders->hub->lock);
 }
 
 

@@ -15,10 +15,10 @@
 static int	check_overflow(int n, int sign)
 {
 	if (n * sign > INT_MAX)
-		return (FAIL);
+		return (1);
 	if (n * sign < INT_MIN)
-		return (FAIL);
-	return (SUCCESS);
+		return (1);
+	return (0);
 }
 
 static int	ft_atol(char *nptr)
@@ -64,8 +64,8 @@ static int	fill_hub(int *arr, char *s, t_hub *hub)
 	else if (!strcmp(s, "edf"))
 		hub->scheduler = EDF;
 	else
-		return (FAIL);
-	return (SUCCESS);
+		return (1);
+	return (0);
 }
 
 int	ft_parser(int ac, char **av, t_hub *hub)
@@ -75,17 +75,17 @@ int	ft_parser(int ac, char **av, t_hub *hub)
 	int	n;
 
 	if (ac != 9)
-		return (FAIL);
+		return (1);
 	i = 1;
 	while (i < ac - 1)
 	{
 		n = ft_atol(av[i]);
 		if (n < 0)
-			return (FAIL);
+			return (1);
 		n_arr[i - 1] = n;
 		i++;
 	}
 	if (strcmp(av[i], "fifo") && strcmp(av[i], "edf"))
-		return (FAIL);
+		return (1);
 	return (fill_hub(n_arr, av[i], hub));
 }

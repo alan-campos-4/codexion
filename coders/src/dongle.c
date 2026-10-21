@@ -16,16 +16,16 @@ static int	safe_get_remaining(t_dongle *dongle, int cooldown,
 				int *remaining)
 {
 	if (!dongle)
-		return (FAIL);
+		return (1);
 	*remaining = 0;
 	pthread_mutex_lock(&dongle->lock);
 	if (dongle->last_use_time)
 	{
 		*remaining = dongle->last_use_time + (cooldown * MS_IN_US)
-			- get_curr_time();
+			- get_time(0);
 	}
 	pthread_mutex_unlock(&dongle->lock);
-	return (SUCCESS);
+	return (0);
 }
 
 static int	apply_cooldown(t_dongle *first, t_dongle *second,
@@ -38,14 +38,14 @@ static int	apply_cooldown(t_dongle *first, t_dongle *second,
 	r_first = 0;
 	r_second = 0;
 	if (safe_get_remaining(first, coder->hub->cooldown, &r_first))
-		return (FAIL);
+		return (1);
 	if (safe_get_remaining(second, coder->hub->cooldown, &r_second))
-		return (FAIL);
+		return (1);
 	max_wait = r_first;
 	if (r_second > r_first)
 		max_wait = r_second;
 	if (max_wait <= 0)
-		return (SUCCESS);
+		return (0);
 	return (better_sleep(coder, max_wait));
 }
 
@@ -74,13 +74,13 @@ static int	check_and_take(t_dongle *first, t_dongle *second,
 		remove_request_top(&second->heap);
 		pthread_mutex_unlock(&second->lock);
 		pthread_mutex_unlock(&first->lock);
-		return (SUCCESS);
+		return (0);
 	}
 	else if (!f_ready)
 		wait_for_dongle(first, second);
 	else
 		wait_for_dongle(second, first);
-	return (FAIL);
+	return (1);
 }
 
 int	get_dongles(t_coder *coder)
@@ -93,17 +93,17 @@ int	get_dongles(t_coder *coder)
 	pre_register_heaps(f, s, coder, pick_metric(coder));
 	while (1)
 	{
-		if (check_stop_sim(coder->hub))
-			return (FAIL);
+		if (stop_program(coder->hub))
+			return (1);
 		if (!check_and_take(f, s, coder))
 			break ;
 	}
 	if (apply_cooldown(f, s, coder))
-		return (FAIL);
-	if (print_log("has taken dongle", coder, coder->hub)
-		|| print_log("has taken dongle", coder, coder->hub))
-		return (FAIL);
-	return (SUCCESS);
+		return (1);
+	if (log_status("has taken dongle", coder, coder->hub)
+		|| log_status("has taken dongle", coder, coder->hub))
+		return (1);
+	return (0);
 }
 
 

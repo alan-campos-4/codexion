@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 14:10:00 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 17:19:32 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,36 +22,13 @@
 # include <sys/time.h>
 # include <unistd.h>
 
-# define FAIL 1
-# define SUCCESS 0
-# define ZERO_CODERS 2
 # define MS_IN_US 1000
-# define FIFO 0
-# define EDF 1
 
-typedef struct s_coder	t_coder;
-typedef struct s_hub	t_hub;
-typedef struct s_dongle	t_dongle;
-
-typedef struct s_hub
+typedef enum s_scheduler
 {
-	int					n_coders;
-	int					burnout_time;
-	int					compile_time;
-	int					debug_time;
-	int					refactor_time;
-	int					target_compiles;
-	int					cooldown;
-	int					scheduler;
-	int					start_sim;
-	int					stop_sim;
-	int					ready_count;
-	int					start_time;
-	pthread_mutex_t		sim_lock;
-	pthread_mutex_t		print_lock;
-	pthread_cond_t		cond;
-	t_coder				*coders;
-}						t_hub;
+	FIFO,
+	EDF,
+}						t_scheduler;
 
 typedef struct s_request
 {
@@ -65,10 +42,13 @@ typedef struct s_heap
 	int					size;
 }						t_heap;
 
+typedef struct s_coder	t_coder;
+typedef struct s_hub	t_hub;
+
 typedef struct s_dongle
 {
 	int					is_available;
-	int					last_use_time;
+	long				last_use_time;
 	pthread_mutex_t		lock;
 	pthread_cond_t		cond;
 	t_heap				heap;
@@ -78,12 +58,36 @@ typedef struct s_coder
 {
 	int					id;
 	int					completed_compiles;
-	int					last_compile;
-	t_hub				*hub;
+	long				last_compile;
+	pthread_mutex_t		lock;
 	t_dongle			*first_dongle;
 	t_dongle			*second_dongle;
-	pthread_mutex_t		lock;
+	t_hub				*hub;
 }						t_coder;
+
+typedef struct s_hub
+{
+	int					n_coders;
+	long				burnout_time;
+	long				compile_time;
+	long				debug_time;
+	long				refactor_time;
+	long				target_compiles;
+	int					cooldown;
+	t_scheduler			scheduler;
+	int					start_flag;
+	int					stop_flag;
+	int					ready_count;
+	long				start_time;
+	pthread_mutex_t		lock;
+	pthread_mutex_t		stop_lock;
+	pthread_mutex_t		log_lock;
+	pthread_cond_t		cond;
+	t_coder				*coders;
+}						t_hub;
+
+/**** utils.c *****/
+long					get_time(long start_time);
 
 int						ft_parser(int ac, char **av, t_hub *hub);
 int						init_sim(t_hub *hub, t_coder **coders,
@@ -108,11 +112,9 @@ int						init_hub(t_hub *hub);
 void					sim_start(t_coder *coders);
 
 void					wakeup_coders(t_coder *coders);
-int						get_curr_time(void);
-int						print_log(char *str, t_coder *coder, t_hub *hub);
-int						check_stop_sim(t_hub *hub);
+int						log_status(char *str, t_coder *coder, t_hub *hub);
+int						stop_program(t_hub *hub);
 int						better_sleep(t_coder *coder, int time);
-void					wait_on_threads(pthread_t *ts, int n);
 void					swap(t_request *x, t_request *y);
 int						pick_metric(t_coder *coder);
 

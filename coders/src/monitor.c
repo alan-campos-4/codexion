@@ -16,9 +16,9 @@ void	wakeup_coders(t_coder *coders)
 {
 	int	i;
 
-	pthread_mutex_lock(&coders->hub->sim_lock);
+	pthread_mutex_lock(&coders->hub->lock);
 	pthread_cond_broadcast(&coders->hub->cond);
-	pthread_mutex_unlock(&coders->hub->sim_lock);
+	pthread_mutex_unlock(&coders->hub->lock);
 	i = 0;
 	while (i < coders->hub->n_coders)
 	{
@@ -36,38 +36,38 @@ int	burnout_handle(t_coder *coders, int i, int last_compile)
 {
 	if (last_compile)
 	{
-		if (get_curr_time() - last_compile
+		if (get_time(0) - last_compile
 			< (int)coders->hub->burnout_time * MS_IN_US)
-			return (SUCCESS);
+			return (0);
 	}
 	else
 	{
-		if (get_curr_time() - coders->hub->start_time
+		if (get_time(0) - coders->hub->start_time
 			< (int)coders->hub->burnout_time * MS_IN_US)
-			return (SUCCESS);
+			return (0);
 	}
-	pthread_mutex_lock(&coders->hub->sim_lock);
-	coders->hub->stop_sim = 1;
-	pthread_mutex_unlock(&coders->hub->sim_lock);
-	print_log("has burned out", &coders[i], coders->hub);
+	pthread_mutex_lock(&coders->hub->lock);
+	coders->hub->stop_flag = 1;
+	pthread_mutex_unlock(&coders->hub->lock);
+	log_status("has burned out", &coders[i], coders->hub);
 	wakeup_coders(coders);
-	return (FAIL);
+	return (1);
 }
 
 int	routine_primer(t_coder *coders, int *i, int *all_done)
 {
 	if (*all_done)
 	{
-		pthread_mutex_lock(&coders->hub->sim_lock);
-		coders->hub->stop_sim = 1;
-		pthread_mutex_unlock(&coders->hub->sim_lock);
+		pthread_mutex_lock(&coders->hub->lock);
+		coders->hub->stop_flag = 1;
+		pthread_mutex_unlock(&coders->hub->lock);
 		wakeup_coders(coders);
-		return (FAIL);
+		return (1);
 	}
 	*i = 0;
 	*all_done = 1;
 	usleep(100);
-	return (SUCCESS);
+	return (0);
 }
 
 void	*monitor_routine(void *arg)

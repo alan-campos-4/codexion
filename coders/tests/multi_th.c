@@ -40,13 +40,13 @@ typedef struct s_coder
 
 typedef struct s_program
 {
-	int						start_sim;
-	int						stop_sim;
+	int						start_flag;
+	int						stop_flag;
 	unsigned int			count;
 	unsigned long			start_time;
 	unsigned long			curr_time;
 	t_coder					*coders;
-	pthread_mutex_t			sim_lock;
+	pthread_mutex_t			lock;
 	pthread_mutex_t			print_lock;
 	pthread_cond_t			cond;
 }							t_program;
@@ -67,9 +67,9 @@ void	*thread_routine(void *data)
 	coder = (t_coder *)data;
 	log_status(coder, "start");
 	i = 0;
-	while (coder->program->stop_sim != 1)
+	while (coder->program->stop_flag != 1)
 	{
-		//if (coder->program->stop_sim == 1)
+		//if (coder->program->stop_flag == 1)
 			//break ;
 		pthread_mutex_lock(&coder->coder_mutex);
 		usleep(TIME_BURNOUT * 100);
@@ -97,9 +97,9 @@ int	burnout_handle(t_coder *coders, int i, int last_compile)
 		if (get_time(coders->program->start_time) < TIME_BURNOUT)
 			return (0);
 	}
-	pthread_mutex_lock(&coders->program->sim_lock);
-	coders->program->stop_sim = 1;
-	pthread_mutex_unlock(&coders->program->sim_lock);
+	pthread_mutex_lock(&coders->program->lock);
+	coders->program->stop_flag = 1;
+	pthread_mutex_unlock(&coders->program->lock);
 	log_status(&coders[i], "has burned out");
 	// wakeup_coders(coders);
 	return (1);
@@ -150,11 +150,11 @@ int	create_monitor(pthread_t *monitor, t_coder *coders)
 {
 	if (!pthread_create(monitor, NULL, monitor_routine, coders))
 		return (0);
-	/*pthread_mutex_lock(&coders->program->sim_lock);
-	coders->program->stop_sim = 1;
-	coders->program->start_sim = 1;
+	/*pthread_mutex_lock(&coders->program->lock);
+	coders->program->stop_flag = 1;
+	coders->program->start_flag = 1;
 	pthread_cond_broadcast(&coders->program->cond);
-	pthread_mutex_unlock(&coders->program->sim_lock);*/
+	pthread_mutex_unlock(&coders->program->lock);*/
 	return (1);
 }
 
@@ -183,8 +183,8 @@ int	main1(void)
 	if (monitor_status == 1)
 		return (1);
 	program.count = 0;
-	program.start_sim = 1;
-	program.stop_sim = 0;
+	program.start_flag = 1;
+	program.stop_flag = 0;
 	program.start_time = get_time(0);
 	program.curr_time = get_time(program.start_time);
 	program.coders = coders;

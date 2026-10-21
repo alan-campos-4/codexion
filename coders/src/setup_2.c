@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 14:01:58 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 14:02:42 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/21 17:05:16 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,16 +64,18 @@ t_coder	*init_coders(int n)
 int	init_hub(t_hub *hub)
 {
 	if (!hub)
-		return (FAIL);
-	hub->stop_sim = 0;
-	hub->start_sim = 0;
+		return (1);
+	hub->stop_flag = 0;
+	hub->start_flag = 0;
 	hub->ready_count = 0;
-	if (pthread_mutex_init(&hub->print_lock, NULL))
+	if (pthread_mutex_init(&hub->stop_lock, NULL))
 		return (hub_cleanup(hub, 0, 0, 0));
-	else if (pthread_mutex_init(&hub->sim_lock, NULL))
+	if (pthread_mutex_init(&hub->log_lock, NULL))
+		return (hub_cleanup(hub, 0, 0, 0));
+	else if (pthread_mutex_init(&hub->lock, NULL))
 		return (hub_cleanup(hub, 0, 0, 1));
 	else if (pthread_cond_init(&hub->cond, NULL))
 		return (hub_cleanup(hub, 0, 1, 1));
 	else
-		return (SUCCESS);
+		return (0);
 }

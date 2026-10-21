@@ -18,7 +18,7 @@ int	pick_metric(t_coder *coder)
 		return (coder->last_compile
 			+ ((int)coder->hub->burnout_time * MS_IN_US));
 	else
-		return (get_curr_time());
+		return (get_time(0));
 }
 
 void	swap(t_request *x, t_request *y)
