@@ -24,7 +24,7 @@ static void	swap(t_request *x, t_request *y)
 int	pick_metric(t_coder *coder)
 {
 	if (coder->hub->scheduler == EDF)
-		return (coder->last_compile + (coder->hub->time_burnout * 1000));
+		return (coder->last_compile_time + (coder->hub->time_burnout * 1000));
 	else
 		return (get_time(0));
 }

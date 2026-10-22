@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:35:37 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 13:59:03 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 15:14:44 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,11 @@ void	wakeup_coders(t_coder *coders)
 	}
 }
 
-int	burnout_handle(t_coder *coders, int i, int last_compile)
+int	burnout_handle(t_coder *coders, int i, int last_compile_time)
 {
-	if (last_compile)
+	if (last_compile_time)
 	{
-		if (get_time(0) - last_compile
+		if (get_time(0) - last_compile_time
 			< (int)coders->hub->burnout_time * MS_TO_US)
 			return (0);
 	}
@@ -49,7 +49,7 @@ int	burnout_handle(t_coder *coders, int i, int last_compile)
 	pthread_mutex_lock(&coders->hub->lock);
 	coders->hub->stop_flag = 1;
 	pthread_mutex_unlock(&coders->hub->lock);
-	log_status("has burned out", &coders[i], coders->hub);
+	log_status(coders->hub, coders[i].id, LOG_BURNOUT);
 	wakeup_coders(coders);
 	return (1);
 }
@@ -75,11 +75,11 @@ void	*monitor_routine(void *arg)
 	t_coder		*coders;
 	int		all_done;
 	int		i;
-	int		last_compile;
+	int		last_compile_time;
 	int		completed_compiles;
 
 	coders = (t_coder *)arg;
-	if (wait_for_start(coders))
+	if (wait_for_others(coders))
 		return (NULL);
 	i = 0;
 	all_done = 1;
@@ -87,9 +87,9 @@ void	*monitor_routine(void *arg)
 	{
 		pthread_mutex_lock(&coders[i].lock);
 		completed_compiles = coders[i].completed_compiles;
-		last_compile = coders[i].last_compile;
+		last_compile_time = coders[i].last_compile_time;
 		pthread_mutex_unlock(&coders[i].lock);
-		if (burnout_handle(coders, i++, last_compile))
+		if (burnout_handle(coders, i++, last_compile_time))
 			return (NULL);
 		if (completed_compiles < coders->hub->target_compiles)
 			all_done = 0;
@@ -105,14 +105,14 @@ void	*monitor_routine(void *arg)
 // Check if the coder has reached burnout
 static int	coder_is_in_burnout(t_hub *hub, t_coder *coder)
 {
-	//long	time_since_last_compile;
-	long	last_compile;
+	//long	time_since_last_compile_time;
+	long	last_compile_time;
 
 	pthread_mutex_lock(&coder->time_lock);
-	last_compile = coder->last_compile;
+	last_compile_time = coder->last_compile_time;
 	pthread_mutex_unlock(&coder->time_lock);
-	//time_since_last_compile = get_time(0) - last_compile;
-	return (get_time(0) - last_compile >= (hub->time_burnout * 1000));
+	//time_since_last_compile_time = get_time(0) - last_compile_time;
+	return (get_time(0) - last_compile_time >= (hub->time_burnout * 1000));
 }
 
 // Check if the coder has reached the number of compiles required

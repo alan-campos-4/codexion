@@ -1,7 +1,29 @@
 *This project has been created as part of the 42 curriculum by alvespin.*
 
----
 # Codexion
+
+## Table of Contents
+
+1. [Description](#description)
+   - [Arguments](#arguments)
+   - [Schedulers](#schedulers)
+   - [Time Management](#time-management)
+   - [Project Structure](#project-structure)
+   - [Object Structure](#object-structure)
+   - [Libraries](#libraries)
+   - [Macros](#macros)
+2. [Intructions](#instructions)
+   - [Usage](#usage)
+   - [Example](#examples)
+3. [Blocking cases handled](#blocking-cases-handled)
+4. [Thread synchronization mechanisms](#thread-synchronization-mechanisms)
+5. [Resources](#resources)
+   - [Documentation](#documentation)
+   - [Guides](#guides)
+   - [Projects](#projects)
+   - [AI](#ai)
+
+---
 
 ## Description
 
@@ -17,25 +39,32 @@ All timestamps values and the variables that store them are declared with the `l
 |Name|Description|Value|
 |--|--|--|
 | `number_of_coders`| Number of coders and dongles in the program. | integer >= 1 |
-| `time_to_burnout`| Time it takes for a coder to burnout. | long >= 1 |
-| `time_to_compile`| Time it takes for a coder to compile. | long >= 1 |
+| `time_to_burnout`| Time it takes for a coder to burnout. | long integer >= 1 |
+| `time_to_compile`| Time it takes for a coder to compile. | long integer >= 1 |
 | `time_to_debug`| Time it takes for a coder to debug. | long >= 1 |
 | `time_to_refactor`| Time it takes for a coder to refactor. | long >= 1 |
 | `dongle_cooldown`| Time it takes for a dongle to become available after use. | long >= 1 |
 | `number_of_compiles_required`| Amount of times a coder must compile before the program ends. | integer >= 1 |
 | `scheduler`| Type of scheduler used to distribute dongles. | 'fifo' / 'edf' |
 
-In order for the coders to not burn out this rule must be obbeyd
-
-`time_to_burnout` > (`time_to_compile` + `time_to_debug` + `time_to_refactor` + `dongle_cooldown`)
-
-The bigger the difference the least likely burnout becomes.
-
 #### Schedulers
 
 - **FIFO (First In, First Out)**: the dongle will be given to the coder that asked for it first.
 - **EDF (Earliest Deadline First)**: the dongle will be given to the coder with the shortest deadline to burnout (last_compile +
 time_to_burnout).
+
+##### Time Management
+
+All timestamps values printed in the log and arguments above are in miliseconds (ms). However, the sleep function used an timestamps created during runtime are in microseconds (us). This requires some attention:
+
+1 ms   = 1000 us
+500 ms = 500000 us
+1 s
+
+In order for the coders to not burn out this rule must be obbeyd:
+- `time_to_burnout` > (`time_to_compile` + `time_to_debug` + `time_to_refactor` + `dongle_cooldown`)
+
+The bigger the difference the least likely burnout becomes.
 
 #### Project Structure
 
@@ -126,8 +155,6 @@ In order to create the executable, run this on the coders/ directory.
 make
 ```
 
-#### Execution
-
 To run the executable, you will need ro provide the all the arguments described:
 ```bash
 ./codexion <n_coders> <time_to_burnout> <time_to_compile> <time_to_debug> <time_to_cooldown> <n_compiles> <time_to_refactor> <scheduler>
@@ -137,7 +164,6 @@ To run the executable, you will need ro provide the all the arguments described:
 ```bash
 ./codexion 5 340 100 100 10 10 10 edf   # Stress test for edf
 ```
-
 
 ## Blocking cases handled
 
@@ -151,10 +177,16 @@ To run the executable, you will need ro provide the all the arguments described:
 
 #### Documentation
 
-- https://www.geeksforgeeks.org/c/multithreading-in-c/
-- https://www.geeksforgeeks.org/operating-systems/reader-writer-problem-using-monitors-pthreads/
 - https://www.doxygen.nl/manual/docblocks.html#cppblock
 - https://gcc.gnu.org/onlinedocs/cpp/Object-like-Macros.html
+- https://www.man7.org/linux/man-pages/man3/usleep.3.html
+- https://en.cppreference.com/c/chrono/clock_t
+
+#### Guides
+
+- https://www.geeksforgeeks.org/c/multithreading-in-c/
+- https://www.geeksforgeeks.org/operating-systems/reader-writer-problem-using-monitors-pthreads/
+- https://www.geeksforgeeks.org/cpp/how-to-measure-time-taken-by-a-program-in-c/
 
 #### Projects
 
@@ -166,4 +198,3 @@ To run the executable, you will need ro provide the all the arguments described:
 #### AI
 
 The AI chatbot Claude was used incedentally to resolve and explain especific errors and unwanted results. No code was provided.
-

@@ -48,7 +48,7 @@ t_coder	*init_coders(int n)
 	{
 		(coders + i)->id = i + 1;
 		(coders + i)->completed_compiles = 0;
-		(coders + i)->last_compile = 0;
+		(coders + i)->last_compile_time = 0;
 		if (pthread_mutex_init(&(coders + i)->lock, NULL))
 		{
 			while (i-- > 0)

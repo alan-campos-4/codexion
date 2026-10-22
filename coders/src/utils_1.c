@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 13:00:04 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 15:08:08 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,27 +35,6 @@ int	get_curr_time(void)
 }*/
 
 /**
- * Makes the coder sleep for a given amount of time. Can stop at any moment.
- */
-int	coder_sleep(t_coder *coder, int time)
-{
-	int	start_time;
-
-	if (!coder)
-		return (1);
-	start_time = get_time(0);
-	while (1)
-	{
-		if (stop_program(coder->hub))
-			return (1);
-		if (get_time(0) - start_time > time)
-			return (0);
-		usleep(MS_TO_US);
-	}
-	return (0);
-}
-
-/**
  * Savely checks the program's stop flag, returning whether
  * the execution shoudl stop (1) or continue(0).
  */
@@ -72,12 +51,10 @@ int	stop_program(t_hub *hub)
 /**
  * Prints the status of a coder in the current timestamp.
  */
-int	log_status(char *str, t_coder *coder, t_hub *hub)
+int	log_status(t_hub *hub, int id, char *str)
 {
-	int		id;
 	long long	timestamp;
 
-	id = coder->id;
 	pthread_mutex_lock(&hub->log_lock);
 	timestamp = (get_time(0) - hub->start_time) / MS_TO_US;
 	if (stop_program(hub) && (strcmp(str, "has burned out")))

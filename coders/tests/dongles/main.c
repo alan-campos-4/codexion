@@ -52,7 +52,7 @@ static int	init_coders(t_hub *hub)
 	{
 		coders[i].id = i + 1;
 		coders[i].n_compiles = 0;
-		coders[i].last_compile = hub->start_time;
+		coders[i].last_compile_time = hub->start_time;
 		coders[i].hub = hub;
 		coders[i].dongle_l = &hub->dongles[i];
 		coders[i].dongle_r = (&hub->dongles[(i + 1) % hub->n_coders]);

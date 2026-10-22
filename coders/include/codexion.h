@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 13:00:30 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 14:54:28 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,7 @@ typedef struct s_coder
 {
 	int					id;
 	int					completed_compiles;
-	long				last_compile;
+	long				last_compile_time;
 	pthread_mutex_t		lock;
 	t_dongle			*first_dongle;
 	t_dongle			*second_dongle;
@@ -93,10 +93,9 @@ typedef struct s_hub
 
 /**** utils.c *****/
 long					get_time(long start_time);
-int						coder_sleep(t_coder *coder, int time);
+int						coder_sleep(t_coder *coder, long time);
 int						stop_program(t_hub *hub);
-int						log_status(char *str, t_coder *coder, t_hub *hub);
-
+int						log_status(t_hub *hub, int id, char *str);
 
 int						ft_parser(int ac, char **av, t_hub *hub);
 int						init_sim(t_hub *hub, t_coder **coders,
@@ -106,7 +105,7 @@ pthread_t				*init_threads(t_coder *coders);
 void					*coder_routine(void *arg);
 int						release_dongle(t_dongle *dongle);
 int						get_dongles(t_coder *coder);
-int						wait_for_start(t_coder *coder);
+int						wait_for_others(t_coder *coder);
 void					*single_coder(t_coder *coder, t_dongle *dongle);
 
 void					remove_request_top(t_heap *heap);
@@ -121,7 +120,6 @@ int						init_hub(t_hub *hub);
 void					sim_start(t_coder *coders);
 
 void					wakeup_coders(t_coder *coders);
-
 
 void					swap(t_request *x, t_request *y);
 int						pick_metric(t_coder *coder);

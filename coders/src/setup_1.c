@@ -143,7 +143,7 @@ static int	init_coders(t_hub *hub)
 	{
 		coders[i].id = i + 1;
 		coders[i].n_compiles = 0;
-		coders[i].last_compile = hub->start_time;
+		coders[i].last_compile_time = hub->start_time;
 		coders[i].hub = hub;
 		coders[i].dongle_l = &hub->dongles[i];
 		coders[i].dongle_r = (&hub->dongles[(i + 1) % hub->n_coders]);
@@ -194,7 +194,7 @@ int	init_coders(t_hub *hub, int size)
 		coders[i].dongle_l = NULL;
 		coders[i].dongle_r = NULL;
 		coders[i].completed_compiles = 0;
-		coders[i].last_compile = 0;
+		coders[i].last_compile_time = 0;
 		pthread_mutex_init(coders[i].lock_l, NULL);
 		pthread_mutex_init(coders[i].lock_r, NULL);
 		i++;

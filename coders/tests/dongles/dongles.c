@@ -201,7 +201,7 @@ static int	release_dongle(t_hub *hub, t_dongle	*dongle)
 int	compile(t_coder *coder)
 {
 	pthread_mutex_lock(&coder->lock);
-	coder->last_compile = get_time(0);
+	coder->last_compile_time = get_time(0);
 	pthread_mutex_unlock(&coder->lock);
 	log_status(coder->hub, coder, "is compiling");
 	usleep(coder->hub->time_compile * 1000);
@@ -238,7 +238,7 @@ void    *coder_routine(void *arg)
 	if (wait_for_others(coder))
 		return (NULL);
 	pthread_mutex_lock(&coder->lock);
-	coder->last_compile = coder->hub->start_time;
+	coder->last_compile_time = coder->hub->start_time;
 	pthread_mutex_unlock(&coder->lock);
 	//if (coder->hub->n_coders == 1)
 	//	return (single_coder(coder, coder->dongle_l));

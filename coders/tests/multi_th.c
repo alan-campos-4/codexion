@@ -35,7 +35,7 @@ typedef struct s_coder
 	pthread_mutex_t			coder_mutex;
 	t_program				*program;
 	unsigned int			completed_compiles;
-	unsigned long			last_compile;
+	unsigned long			last_compile_time;
 }							t_coder;
 
 typedef struct s_program
@@ -75,7 +75,7 @@ void	*thread_routine(void *data)
 		usleep(TIME_BURNOUT * 100);
 		coder->completed_compiles++;
 		coder->program->curr_time = get_time(coder->program->start_time);
-		coder->last_compile = coder->program->curr_time;
+		coder->last_compile_time = coder->program->curr_time;
 		log_status(coder, "count");
 		// if (program->count % 10 == 0)
 		pthread_mutex_unlock(&coder->coder_mutex);
@@ -85,11 +85,11 @@ void	*thread_routine(void *data)
 	return (NULL); // Thread termine ici.
 }
 
-int	burnout_handle(t_coder *coders, int i, int last_compile)
+int	burnout_handle(t_coder *coders, int i, int last_compile_time)
 {
-	if (last_compile)
+	if (last_compile_time)
 	{
-		if (get_time(last_compile) < TIME_BURNOUT)
+		if (get_time(last_compile_time) < TIME_BURNOUT)
 			return (0);
 	}
 	else
@@ -131,8 +131,8 @@ void	*monitor_routine(void *arg)
 	{
 		// pthread_mutex_lock(&coders[i].lock);
 		// completed_compiles = coders[i].completed_compiles;
-		//last_compile = coders[i].last_compile;
-		//if (burnout_handle(coders, i++, last_compile))
+		//last_compile_time = coders[i].last_compile_time;
+		//if (burnout_handle(coders, i++, last_compile_time))
 			//break ;
 		for (int i=0; i < N_CODERS; i++)
 		{

@@ -53,7 +53,7 @@ typedef struct s_coder
 	int					id;
 	int					request_order;
 	int					n_compiles;
-	long				last_compile;
+	long				last_compile_time;
 	long				priority_ms;
 	pthread_t			thread;
 	pthread_mutex_t		lock;
