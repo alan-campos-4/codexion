@@ -96,7 +96,7 @@ void	sim_start(t_coder *coders)
 		if (coders->hub->ready_count == coders->hub->n_coders + 1L)
 			break ;
 		pthread_mutex_unlock(&coders->hub->lock);
-		usleep(MS_IN_US);
+		usleep(MS_TO_US);
 	}
 	coders->hub->start_time = get_time(0);
 	coders->hub->start_flag = 1;

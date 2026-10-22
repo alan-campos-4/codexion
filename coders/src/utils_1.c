@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 17:10:29 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 13:00:04 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ int	get_curr_time(void)
 /**
  * Makes the coder sleep for a given amount of time. Can stop at any moment.
  */
-int	better_sleep(t_coder *coder, int time)
+int	coder_sleep(t_coder *coder, int time)
 {
 	int	start_time;
 
@@ -50,7 +50,7 @@ int	better_sleep(t_coder *coder, int time)
 			return (1);
 		if (get_time(0) - start_time > time)
 			return (0);
-		usleep(MS_IN_US);
+		usleep(MS_TO_US);
 	}
 	return (0);
 }
@@ -69,6 +69,9 @@ int	stop_program(t_hub *hub)
 	return (state);
 }
 
+/**
+ * Prints the status of a coder in the current timestamp.
+ */
 int	log_status(char *str, t_coder *coder, t_hub *hub)
 {
 	int		id;
@@ -76,7 +79,7 @@ int	log_status(char *str, t_coder *coder, t_hub *hub)
 
 	id = coder->id;
 	pthread_mutex_lock(&hub->log_lock);
-	timestamp = (get_time(0) - hub->start_time) / MS_IN_US;
+	timestamp = (get_time(0) - hub->start_time) / MS_TO_US;
 	if (stop_program(hub) && (strcmp(str, "has burned out")))
 	{
 		pthread_mutex_unlock(&hub->log_lock);

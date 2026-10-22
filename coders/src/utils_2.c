@@ -16,7 +16,7 @@ int	pick_metric(t_coder *coder)
 {
 	if (coder->hub->scheduler == EDF)
 		return (coder->last_compile
-			+ ((int)coder->hub->burnout_time * MS_IN_US));
+			+ ((int)coder->hub->burnout_time * MS_TO_US));
 	else
 		return (get_time(0));
 }

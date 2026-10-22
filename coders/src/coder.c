@@ -19,7 +19,7 @@ int	compile(t_coder *coder)
 	pthread_mutex_unlock(&coder->lock);
 	if (log_status("is compiling", coder, coder->hub))
 		return (1);
-	if (better_sleep(coder, (int)coder->hub->compile_time * MS_IN_US))
+	if (coder_sleep(coder, (int)coder->hub->compile_time * MS_TO_US))
 		return (1);
 	pthread_mutex_lock(&coder->lock);
 	coder->completed_compiles += 1;
@@ -35,7 +35,7 @@ int	debug(t_coder *coder)
 {
 	if (log_status("is debugging", coder, coder->hub))
 		return (1);
-	if (better_sleep(coder, (int)coder->hub->debug_time * MS_IN_US))
+	if (coder_sleep(coder, (int)coder->hub->debug_time * MS_TO_US))
 		return (1);
 	return (0);
 }
@@ -44,7 +44,7 @@ int	refactor(t_coder *coder)
 {
 	if (log_status("is refactoring", coder, coder->hub))
 		return (1);
-	if (better_sleep(coder, (int)coder->hub->refactor_time * MS_IN_US))
+	if (coder_sleep(coder, (int)coder->hub->refactor_time * MS_TO_US))
 		return (1);
 	return (0);
 }
@@ -73,8 +73,8 @@ void	*coder_routine(void *arg)
 		return (single_coder(coder, coder->first_dongle));
 	if (coder->id % 2 == 0 || coder->id == coder->hub->n_coders)
 	{
-		if (better_sleep(coder,
-				((int)coder->hub->compile_time * MS_IN_US) / 2))
+		if (coder_sleep(coder,
+				((int)coder->hub->compile_time * MS_TO_US) / 2))
 			return (0);
 	}
 	while (1)

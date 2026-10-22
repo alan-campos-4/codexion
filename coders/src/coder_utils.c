@@ -28,6 +28,6 @@ void	*single_coder(t_coder *coder, t_dongle *dongle)
 	dongle->is_available = 0;
 	pthread_mutex_unlock(&dongle->lock);
 	log_status("has taken dongle", coder, coder->hub);
-	better_sleep(coder, (int)coder->hub->burnout_time * MS_IN_US);
+	coder_sleep(coder, (int)coder->hub->burnout_time * MS_TO_US);
 	return (NULL);
 }

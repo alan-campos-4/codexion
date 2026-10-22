@@ -21,7 +21,7 @@ static int	safe_get_remaining(t_dongle *dongle, int cooldown,
 	pthread_mutex_lock(&dongle->lock);
 	if (dongle->last_use_time)
 	{
-		*remaining = dongle->last_use_time + (cooldown * MS_IN_US)
+		*remaining = dongle->last_use_time + (cooldown * MS_TO_US)
 			- get_time(0);
 	}
 	pthread_mutex_unlock(&dongle->lock);
@@ -46,7 +46,7 @@ static int	apply_cooldown(t_dongle *first, t_dongle *second,
 		max_wait = r_second;
 	if (max_wait <= 0)
 		return (0);
-	return (better_sleep(coder, max_wait));
+	return (coder_sleep(coder, max_wait));
 }
 
 static void	wait_for_dongle(t_dongle *to_wait, t_dongle *other)

@@ -37,13 +37,13 @@ int	burnout_handle(t_coder *coders, int i, int last_compile)
 	if (last_compile)
 	{
 		if (get_time(0) - last_compile
-			< (int)coders->hub->burnout_time * MS_IN_US)
+			< (int)coders->hub->burnout_time * MS_TO_US)
 			return (0);
 	}
 	else
 	{
 		if (get_time(0) - coders->hub->start_time
-			< (int)coders->hub->burnout_time * MS_IN_US)
+			< (int)coders->hub->burnout_time * MS_TO_US)
 			return (0);
 	}
 	pthread_mutex_lock(&coders->hub->lock);

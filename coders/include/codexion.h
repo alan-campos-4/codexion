@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 17:19:32 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 13:00:30 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,12 @@
 # include <sys/time.h>
 # include <unistd.h>
 
-# define MS_IN_US 1000
+# define MS_TO_US 1000
+# define LOG_DONGLE "has taken a dongle"
+# define LOG_COMPILE "is compiling"
+# define LOG_DEBUG "is debugging"
+# define LOG_REFACTOR "is refactoring"
+# define LOG_BURNOUT "burned out"
 
 typedef enum s_scheduler
 {
@@ -88,6 +93,10 @@ typedef struct s_hub
 
 /**** utils.c *****/
 long					get_time(long start_time);
+int						coder_sleep(t_coder *coder, int time);
+int						stop_program(t_hub *hub);
+int						log_status(char *str, t_coder *coder, t_hub *hub);
+
 
 int						ft_parser(int ac, char **av, t_hub *hub);
 int						init_sim(t_hub *hub, t_coder **coders,
@@ -112,9 +121,8 @@ int						init_hub(t_hub *hub);
 void					sim_start(t_coder *coders);
 
 void					wakeup_coders(t_coder *coders);
-int						log_status(char *str, t_coder *coder, t_hub *hub);
-int						stop_program(t_hub *hub);
-int						better_sleep(t_coder *coder, int time);
+
+
 void					swap(t_request *x, t_request *y);
 int						pick_metric(t_coder *coder);
 
