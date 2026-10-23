@@ -6,12 +6,15 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:35:37 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 15:14:44 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 15:43:03 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/**
+ * Broadcasts the hub's condition, and every coder's dongle's condition.
+ */
 void	wakeup_coders(t_coder *coders)
 {
 	int	i;
@@ -22,28 +25,34 @@ void	wakeup_coders(t_coder *coders)
 	i = 0;
 	while (i < coders->hub->n_coders)
 	{
-		pthread_mutex_lock(&coders[i].first_dongle->lock);
-		pthread_cond_broadcast(&coders[i].first_dongle->cond);
-		pthread_mutex_unlock(&coders[i].first_dongle->lock);
-		pthread_mutex_lock(&coders[i].second_dongle->lock);
-		pthread_cond_broadcast(&coders[i].second_dongle->cond);
-		pthread_mutex_unlock(&coders[i].second_dongle->lock);
+		pthread_mutex_lock(&coders[i].dongle_l->lock);
+		pthread_cond_broadcast(&coders[i].dongle_l->cond);
+		pthread_mutex_unlock(&coders[i].dongle_l->lock);
+		pthread_mutex_lock(&coders[i].dongle_r->lock);
+		pthread_cond_broadcast(&coders[i].dongle_r->cond);
+		pthread_mutex_unlock(&coders[i].dongle_r->lock);
 		i++;
 	}
 }
 
-int	burnout_handle(t_coder *coders, int i, int last_compile_time)
+/**
+ * Checks that a coder has not burnt out.
+ * - If the time past since last_compile_time is smaller than burnout_time,
+ * 	go on. If it's not set, check with start_time.
+ * - If it's not activate the stop flag, log the burnout and wake_up,
+ */
+static int	check_for_burnout(t_coder *coders, int i, int last_compile_time)
 {
 	if (last_compile_time)
 	{
 		if (get_time(0) - last_compile_time
-			< (int)coders->hub->burnout_time * MS_TO_US)
+			< coders->hub->burnout_time * MS_TO_US)
 			return (0);
 	}
 	else
 	{
 		if (get_time(0) - coders->hub->start_time
-			< (int)coders->hub->burnout_time * MS_TO_US)
+			< coders->hub->burnout_time * MS_TO_US)
 			return (0);
 	}
 	pthread_mutex_lock(&coders->hub->lock);
@@ -54,6 +63,9 @@ int	burnout_handle(t_coder *coders, int i, int last_compile_time)
 	return (1);
 }
 
+/**
+ * ...
+ */
 int	routine_primer(t_coder *coders, int *i, int *all_done)
 {
 	if (*all_done)
@@ -70,9 +82,16 @@ int	routine_primer(t_coder *coders, int *i, int *all_done)
 	return (0);
 }
 
+/**
+ * The monitor's thread routine.
+ * - Waits for the other actors.
+ * - Checks a coder's not burnt out.
+ * - Checks a coder's has done all its compiles.
+ * - If not, reset the i and all_done variables
+ */
 void	*monitor_routine(void *arg)
 {
-	t_coder		*coders;
+	t_coder	*coders;
 	int		all_done;
 	int		i;
 	int		last_compile_time;
@@ -89,9 +108,9 @@ void	*monitor_routine(void *arg)
 		completed_compiles = coders[i].completed_compiles;
 		last_compile_time = coders[i].last_compile_time;
 		pthread_mutex_unlock(&coders[i].lock);
-		if (burnout_handle(coders, i++, last_compile_time))
+		if (check_for_burnout(coders, i++, last_compile_time))
 			return (NULL);
-		if (completed_compiles < coders->hub->target_compiles)
+		if (completed_compiles < coders->hub->n_compiles_required)
 			all_done = 0;
 		if (i == coders->hub->n_coders
 			&& routine_primer(coders, &i, &all_done))

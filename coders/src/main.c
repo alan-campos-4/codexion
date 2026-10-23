@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 17:04:39 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 17:27:43 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,7 +53,7 @@ int	codexion(t_coder *coders, t_dongle *dongles, t_hub *hub)
 		join_threads(c_threads, hub->n_coders);
 	else
 	{
-		sim_start(coders);
+		wait_for_start(coders);
 		join_threads(c_threads, hub->n_coders);
 		pthread_join(monitor, NULL);
 	}
@@ -69,15 +69,12 @@ int	main(int ac, char **av)
 	t_dongle	*dongles;
 	int			init_status;
 
-	if (ft_parser(ac, av, &hub))
+	if (parse_args(ac, av, &hub))
 	{
-		fprintf(stderr,
-				"Invalid arguments! example usage: ./codexion"
-				" 5 500 100 100 100 10 60 edf\n");
 		return (1);
 	}
 	init_status = init_sim(&hub, &coders, &dongles);
-	if (init_status == 0)
-		return (codexion(coders, dongles, &hub));
+	//if (init_status == 0)
+	//	return (codexion(coders, dongles, &hub));
 	return (init_status);
 }

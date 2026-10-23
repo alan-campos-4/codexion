@@ -6,12 +6,15 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:47:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 13:58:09 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 15:46:49 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/**
+ * ...
+ */
 static void	bubble_up(t_request *requests, int i)
 {
 	int	parent_idx;
@@ -27,6 +30,9 @@ static void	bubble_up(t_request *requests, int i)
 	}
 }
 
+/**
+ * ...
+ */
 static void	heapify(t_request *requests, int parent, int size)
 {
 	int	left_child_idx;
@@ -51,6 +57,9 @@ static void	heapify(t_request *requests, int parent, int size)
 	}
 }
 
+/**
+ * ...
+ */
 void	add_request(t_heap *heap, int id, int metric)
 {
 	if (!heap || (heap->size == 2))
@@ -61,6 +70,9 @@ void	add_request(t_heap *heap, int id, int metric)
 	heap->size += 1;
 }
 
+/**
+ * ...
+ */
 void	remove_request_top(t_heap *heap)
 {
 	if (!heap || !heap->size)
@@ -72,6 +84,9 @@ void	remove_request_top(t_heap *heap)
 	return ;
 }
 
+/**
+ * ...
+ */
 void	pre_register_heaps(t_dongle *first, t_dongle *second,
 	t_coder *coder, int metric)
 {

@@ -6,12 +6,15 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:11:03 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 15:14:23 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 15:45:59 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/**
+ * ...
+ */
 static int	safe_get_remaining(t_dongle *dongle, int cooldown,
 				int *remaining)
 {
@@ -28,27 +31,33 @@ static int	safe_get_remaining(t_dongle *dongle, int cooldown,
 	return (0);
 }
 
+/**
+ * ...
+ */
 static int	apply_cooldown(t_dongle *first, t_dongle *second,
 	t_coder *coder)
 {
-	int	r_first;
-	int	r_second;
+	int	remaining_l;
+	int	remaining_r;
 	int	max_wait;
 
-	r_first = 0;
-	r_second = 0;
-	if (safe_get_remaining(first, coder->hub->cooldown, &r_first))
+	remaining_l = 0;
+	remaining_r = 0;
+	if (safe_get_remaining(first, coder->hub->cooldown, &remaining_l))
 		return (1);
-	if (safe_get_remaining(second, coder->hub->cooldown, &r_second))
+	if (safe_get_remaining(second, coder->hub->cooldown, &remaining_r))
 		return (1);
-	max_wait = r_first;
-	if (r_second > r_first)
-		max_wait = r_second;
+	max_wait = remaining_l;
+	if (remaining_r > remaining_l)
+		max_wait = remaining_r;
 	if (max_wait <= 0)
 		return (0);
 	return (coder_sleep(coder, max_wait));
 }
 
+/**
+ * ...
+ */
 static void	wait_for_dongle(t_dongle *to_wait, t_dongle *other)
 {
 	pthread_mutex_unlock(&other->lock);
@@ -56,6 +65,9 @@ static void	wait_for_dongle(t_dongle *to_wait, t_dongle *other)
 	pthread_mutex_unlock(&to_wait->lock);
 }
 
+/**
+ * ...
+ */
 static int	check_and_take(t_dongle *first, t_dongle *second,
 	t_coder *coder)
 {
@@ -83,13 +95,16 @@ static int	check_and_take(t_dongle *first, t_dongle *second,
 	return (1);
 }
 
+/**
+ * The coder's action for obtaining its two assigned dongles.
+ */
 int	get_dongles(t_coder *coder)
 {
 	t_dongle	*f;
 	t_dongle	*s;
 
-	f = coder->first_dongle;
-	s = coder->second_dongle;
+	f = coder->dongle_l;
+	s = coder->dongle_r;
 	pre_register_heaps(f, s, coder, pick_metric(coder));
 	while (1)
 	{

@@ -6,16 +6,19 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 14:01:58 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 17:05:16 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 15:49:12 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/**
+ * ...
+ */
 t_dongle	*init_dongles(int n)
 {
 	t_dongle	*dongles;
-	int		i;
+	int			i;
 
 	dongles = malloc(sizeof(t_dongle) * n);
 	if (!dongles)
@@ -35,6 +38,9 @@ t_dongle	*init_dongles(int n)
 	return (dongles);
 }
 
+/**
+ * ...
+ */
 t_coder	*init_coders(int n)
 {
 	t_coder	*coders;
@@ -61,6 +67,9 @@ t_coder	*init_coders(int n)
 	return (coders);
 }
 
+/**
+ * ...
+ */
 int	init_hub(t_hub *hub)
 {
 	if (!hub)

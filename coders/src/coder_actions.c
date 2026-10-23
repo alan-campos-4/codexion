@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:33:11 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 15:18:17 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 16:01:32 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,15 +30,15 @@ static int	coder_compile(t_coder *coder)
 	pthread_mutex_lock(&coder->lock);
 	coder->completed_compiles += 1;
 	pthread_mutex_unlock(&coder->lock);
-	if (release_dongle(coder->first_dongle))
+	if (release_dongle(coder->dongle_l))
 		return (1);
-	if (release_dongle(coder->second_dongle))
+	if (release_dongle(coder->dongle_r))
 		return (1);
 	return (0);
 }
 
 /**
- * The coder's debug or refactor action.
+ * The coder's debug action.
  * - Logs the corresponding action.
  * - Sleeps for the corresponding amount of time.
  */
@@ -51,6 +51,11 @@ static int	coder_debug(t_coder *coder)
 	return (0);
 }
 
+/**
+ * The coder's debug action.
+ * - Logs the corresponding action.
+ * - Sleeps for the corresponding amount of time.
+ */
 static int	coder_refactor(t_coder *coder)
 {
 	if (log_status(coder->hub, coder->id, LOG_REFACTOR))
@@ -59,6 +64,8 @@ static int	coder_refactor(t_coder *coder)
 		return (1);
 	return (0);
 }
+
+/* These functions are kept separate for better performance. :) */
 
 /**
  * The coder's sleep action.
@@ -84,6 +91,13 @@ int	coder_sleep(t_coder *coder, long time)
 	return (0);
 }
 
+/**
+ * The coders' threads routine.
+ * - Waits for the other actors.
+ * - Initializes last_compile_time.
+ * - Performs all dongle actions in a loop.
+ * - If a coder is in an even position, wait for a time to avoid a race.
+ */
 void	*coder_routine(void *arg)
 {
 	t_coder	*coder;
@@ -95,7 +109,7 @@ void	*coder_routine(void *arg)
 	coder->last_compile_time = coder->hub->start_time;
 	pthread_mutex_unlock(&coder->lock);
 	if (coder->hub->n_coders == 1)
-		return (single_coder(coder, coder->first_dongle));
+		return (single_coder(coder, coder->dongle_l));
 	if (coder->id % 2 == 0 || coder->id == coder->hub->n_coders)
 	{
 		if (coder_sleep(coder, (coder->hub->compile_time) / 2))

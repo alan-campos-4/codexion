@@ -2,19 +2,25 @@
 
 # Codexion
 
+<div align="center">
+    <img src="schema.svg" width="75%">
+</div>
+<br>
+
 ## Table of Contents
 
 1. [Description](#description)
    - [Arguments](#arguments)
    - [Schedulers](#schedulers)
+2. [Intructions](#instructions)
+   - [Usage](#usage)
+   - [Example](#examples)
    - [Time Management](#time-management)
+3. [Structure](#structure)
    - [Project Structure](#project-structure)
    - [Object Structure](#object-structure)
    - [Libraries](#libraries)
    - [Macros](#macros)
-2. [Intructions](#instructions)
-   - [Usage](#usage)
-   - [Example](#examples)
 3. [Blocking cases handled](#blocking-cases-handled)
 4. [Thread synchronization mechanisms](#thread-synchronization-mechanisms)
 5. [Resources](#resources)
@@ -29,10 +35,20 @@
 
 This is a project is about managing POSIX Threads and the values they contain.
 
-It is an extension of the Dining Philosophers problem, first proposed by Djisktra to ... .
-In this case we have a number of 'coders' with the same number of 'dongles' that need them in order to compile, or they will burnout.
+It is an extension of the Dining Philosophers problem, an example problem to illustrate synchronization issues and techniques for resolving them.
 
-All timestamps values and the variables that store them are declared with the `long` type.
+**Original**: 
+Formulated by Edsger Dijkstra in 1965 as an exam exercise, it deals with a five philosophers dining at a table, each with their own plate, and with five forks between each one.
+
+A philosopher needs the two forks next to them to eat from their plate. If a philosopher is not eating, they are thinking. After eating, they put down their forks and go back to thinking. If they do not eat within a certain time, they will starve.
+The exercise was to design a concurrent algorithm that will allow the philosophers to indefinately alternate between eating and thinking without starving, assuming they can only be eating or thinking.
+
+**Our version**:
+In this version, instead of philosophers who need forks to eat and not starve, we are dealing with coders who need dongles to compile and not burnout. But there's more.
+
+Once they are done debugging and have put down both dongles, a coder will refactor their code. And once they have refactoreing they will need to compile again. This is not indefinate, as we have a number of compiles required for each coder. The dongles have a cooldown after being used where they cannot be grabbed again.
+
+Aside from that we have to schedulers available to handle the conflict between the coders' demands: FIFO and EDF: 
 
 #### Arguments
 
@@ -55,16 +71,41 @@ time_to_burnout).
 
 ##### Time Management
 
-All timestamps values printed in the log and arguments above are in miliseconds (ms). However, the sleep function used an timestamps created during runtime are in microseconds (us). This requires some attention:
+All timestamps values printed in the log and arguments above are in miliseconds (ms). However, the sleep function used an timestamps created during runtime are in microseconds (us).
 
 1 ms   = 1000 us
 500 ms = 500000 us
-1 s
 
-In order for the coders to not burn out this rule must be obbeyd:
-- `time_to_burnout` > (`time_to_compile` + `time_to_debug` + `time_to_refactor` + `dongle_cooldown`)
+## Instructions
+
+#### Usage
+
+In order to create the executable, run this on the coders/ directory.
+```bash
+make
+```
+
+To run the executable, you will need ro provide the all the arguments described:
+```bash
+./codexion <n_coders> <time_to_burnout> <time_to_compile> <time_to_debug> <time_to_cooldown> <n_compiles> <time_to_refactor> <scheduler>
+```
+
+**Remember**: In order for the coders to not burn out this rule must be obeyed:
+
+`time_to_burnout` > (`time_to_compile` + `time_to_debug` + `time_to_refactor` + `dongle_cooldown`)
 
 The bigger the difference the least likely burnout becomes.
+
+#### Examples
+```bash
+./codexion 6 400 100 100 100 4 20 fifo
+./codexion 5 800 200 200 200 2 15 edf
+
+./codexion 5 340 100 100 10 10 10 edf   # Stress test for edf
+```
+
+
+## Structure
 
 #### Project Structure
 
@@ -114,7 +155,7 @@ long			dongle_cooldown;		// Dongle cooldown.
 t_scheduler		scheduler;				// Type of scheduler (FIFO / EDF).
 int			request_counter;    // ...
 long			start_time;		// Time that the execution starts.
-int					stop_flag;		// Shared flag to stop the execution.
+int			stop_flag;		// Shared flag to stop the execution.
 pthread_mutex_t		request_lock;	// Protects request_counter.
 pthread_mutex_t		stop_lock;		// Protects the stop flag.
 pthread_mutex_t		log_lock;		// Protects the printf inside log_status.
@@ -125,7 +166,7 @@ t_coder			*coders;	// Array of coders in the execution.
 #### Libraries
 ```c
 # include <pthread.h>   // for POSIX threads
-# include <stdio.h>		// for printf()
+# include <stdio.h>	// for printf()
 # include <stdlib.h>	// for atoi(), atol(), NULL
 # include <string.h>	// for strcmp()
 # include <unistd.h>	// for usleep()
@@ -146,25 +187,6 @@ t_coder			*coders;	// Array of coders in the execution.
 # define LOG_BURNOUT "burned out"
 ```
 
-## Instructions
-
-#### Usage
-
-In order to create the executable, run this on the coders/ directory.
-```bash
-make
-```
-
-To run the executable, you will need ro provide the all the arguments described:
-```bash
-./codexion <n_coders> <time_to_burnout> <time_to_compile> <time_to_debug> <time_to_cooldown> <n_compiles> <time_to_refactor> <scheduler>
-```
-
-#### Examples
-```bash
-./codexion 5 340 100 100 10 10 10 edf   # Stress test for edf
-```
-
 ## Blocking cases handled
 
 |
@@ -180,13 +202,12 @@ To run the executable, you will need ro provide the all the arguments described:
 - https://www.doxygen.nl/manual/docblocks.html#cppblock
 - https://gcc.gnu.org/onlinedocs/cpp/Object-like-Macros.html
 - https://www.man7.org/linux/man-pages/man3/usleep.3.html
-- https://en.cppreference.com/c/chrono/clock_t
+- https://www.man7.org/linux/man-pages/man2/gettimeofday.2.html
 
 #### Guides
 
 - https://www.geeksforgeeks.org/c/multithreading-in-c/
 - https://www.geeksforgeeks.org/operating-systems/reader-writer-problem-using-monitors-pthreads/
-- https://www.geeksforgeeks.org/cpp/how-to-measure-time-taken-by-a-program-in-c/
 
 #### Projects
 

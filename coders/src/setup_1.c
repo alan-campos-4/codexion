@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:44:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 17:18:29 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 15:53:55 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -52,17 +52,18 @@ int	assign_coder_attr(t_coder *coders, t_dongle *dongles,
 	while (i < hub->n_coders)
 	{
 		coders[i].hub = hub;
-		coders[i].hub = hub;
-		if (coders[i].id != hub->n_coders)
+		coders[i].dongle_l = &dongles[i];
+		coders[i].dongle_r = (&dongles[(i + 1) % hub->n_coders]);
+		/*if (coders[i].id != hub->n_coders)
 		{
-			coders[i].first_dongle = &dongles[i];
-			coders[i].second_dongle = &dongles[(i + 1) % hub->n_coders];
+			coders[i].dongle_l = &dongles[i];
+			coders[i].dongle_r = &dongles[(i + 1) % hub->n_coders];
 		}
 		else
 		{
-			coders[i].first_dongle = &dongles[(i + 1) % hub->n_coders];
-			coders[i].second_dongle = &dongles[i];
-		}
+			coders[i].dongle_l = &dongles[(i + 1) % hub->n_coders];
+			coders[i].dongle_r = &dongles[i];
+		}*/
 		i++;
 	}
 	return (0);
@@ -88,12 +89,16 @@ int	init_sim(t_hub *hub, t_coder **coders,
 	return (0);
 }
 
-void	sim_start(t_coder *coders)
+/**
+ * Start the program after all the actors have indicated they are ready.
+ * Sets the start_flag, sets the start_time, and broadcasts the hub's condition.
+ */
+void	wait_for_start(t_coder *coders)
 {
 	while (1)
 	{
 		pthread_mutex_lock(&coders->hub->lock);
-		if (coders->hub->ready_count == coders->hub->n_coders + 1L)
+		if (coders->hub->ready_count == coders->hub->n_coders + 1)
 			break ;
 		pthread_mutex_unlock(&coders->hub->lock);
 		usleep(MS_TO_US);

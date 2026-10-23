@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 15:08:08 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/22 15:44:16 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,19 +24,13 @@ long	get_time(long start_time)
 	return ((((int)tv.tv_sec * 1000000) + tv.tv_usec) - start_time);
 }
 /*
-//return (tv.tv_sec * 1000 + tv.tv_usec / 1000 - start_time);
-
-int	get_curr_time(void)
-{
-	struct timeval	time;
-
-	gettimeofday(&time, NULL);
-	return (((int)time.tv_sec * 1000000) + time.tv_usec);
+return (tv.tv_sec * 1000 + tv.tv_usec / 1000 - start_time);
+return (((int)time.tv_sec * 1000000) + time.tv_usec);
 }*/
 
 /**
  * Savely checks the program's stop flag, returning whether
- * the execution shoudl stop (1) or continue(0).
+ * the execution should stop (1) or continue(0).
  */
 int	stop_program(t_hub *hub)
 {
@@ -57,7 +51,7 @@ int	log_status(t_hub *hub, int id, char *str)
 
 	pthread_mutex_lock(&hub->log_lock);
 	timestamp = (get_time(0) - hub->start_time) / MS_TO_US;
-	if (stop_program(hub) && (strcmp(str, "has burned out")))
+	if (stop_program(hub) && (strcmp(str, LOG_BURNOUT)))
 	{
 		pthread_mutex_unlock(&hub->log_lock);
 		return (1);
