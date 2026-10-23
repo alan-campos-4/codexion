@@ -119,14 +119,14 @@ static int	check_and_take(t_dongle *first, t_dongle *second,
 	return (1);
 }
 
-int	get_dongles(t_coder *coder)
+int	try_get_dongles(t_coder *coder)
 {
 	t_dongle	*f;
 	t_dongle	*s;
 
 	f = coder->dongle_l;
 	s = coder->dongle_r;
-	pre_register_heaps(f, s, coder, pick_metric(coder));
+	add_requests_heap(f, s, coder, get_request_value(coder));
 	while (1)
 	{
 		if (stop_program(coder->hub))
@@ -249,7 +249,7 @@ void    *coder_routine(void *arg)
 	}
 	while (1)
 	{
-		if (get_dongles(coder) || compile(coder)
+		if (try_get_dongles(coder) || compile(coder)
 			|| debug(coder) || refactor(coder))
 			return (NULL);
 	}

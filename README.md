@@ -14,13 +14,12 @@
    - [Schedulers](#schedulers)
 2. [Intructions](#instructions)
    - [Usage](#usage)
-   - [Example](#examples)
-   - [Time Management](#time-management)
+   - [Examples](#examples)
 3. [Structure](#structure)
    - [Project Structure](#project-structure)
    - [Object Structure](#object-structure)
+   - [Time Management](#time-management)
    - [Libraries](#libraries)
-   - [Macros](#macros)
 3. [Blocking cases handled](#blocking-cases-handled)
 4. [Thread synchronization mechanisms](#thread-synchronization-mechanisms)
 5. [Resources](#resources)
@@ -48,33 +47,25 @@ In this version, instead of philosophers who need forks to eat and not starve, w
 
 Once they are done debugging and have put down both dongles, a coder will refactor their code. And once they have refactoreing they will need to compile again. This is not indefinate, as we have a number of compiles required for each coder. The dongles have a cooldown after being used where they cannot be grabbed again.
 
-Aside from that we have to schedulers available to handle the conflict between the coders' demands: FIFO and EDF: 
+Aside from that, the conflict between the coders' demands will be handled by two possible schedulers: FIFO and EDF.
 
 #### Arguments
 
 |Name|Description|Value|
 |--|--|--|
-| `number_of_coders`| Number of coders and dongles in the program. | integer >= 1 |
-| `time_to_burnout`| Time it takes for a coder to burnout. | long integer >= 1 |
-| `time_to_compile`| Time it takes for a coder to compile. | long integer >= 1 |
-| `time_to_debug`| Time it takes for a coder to debug. | long >= 1 |
-| `time_to_refactor`| Time it takes for a coder to refactor. | long >= 1 |
-| `dongle_cooldown`| Time it takes for a dongle to become available after use. | long >= 1 |
-| `number_of_compiles_required`| Amount of times a coder must compile before the program ends. | integer >= 1 |
-| `scheduler`| Type of scheduler used to distribute dongles. | 'fifo' / 'edf' |
+| `number_of_coders` | Number of coders and dongles in the program. | integer >= 1 |
+| `time_to_burnout` | Time it takes for a coder to burnout. | long integer >= 1 |
+| `time_to_compile` | Time it takes for a coder to compile. | long integer >= 1 |
+| `time_to_debug` | Time it takes for a coder to debug. | long >= 1 |
+| `time_to_refactor` | Time it takes for a coder to refactor. | long >= 1 |
+| `dongle_cooldown` | Time it takes for a dongle to become available after use. | long >= 1 |
+| `number_of_compiles_required` | Amount of times a coder must compile before the program ends. | integer >= 1 |
+| `scheduler` | Type of scheduler used to distribute dongles. | 'fifo' / 'edf' |
 
 #### Schedulers
 
 - **FIFO (First In, First Out)**: the dongle will be given to the coder that asked for it first.
-- **EDF (Earliest Deadline First)**: the dongle will be given to the coder with the shortest deadline to burnout (last_compile +
-time_to_burnout).
-
-##### Time Management
-
-All timestamps values printed in the log and arguments above are in miliseconds (ms). However, the sleep function used an timestamps created during runtime are in microseconds (us).
-
-1 ms   = 1000 us
-500 ms = 500000 us
+- **EDF (Earliest Deadline First)**: the dongle will be given to the coder with the shortest deadline to burnout (last_compile + time_to_burnout).
 
 ## Instructions
 
@@ -99,7 +90,9 @@ The bigger the difference the least likely burnout becomes.
 #### Examples
 ```bash
 ./codexion 6 400 100 100 100 4 20 fifo
+./codexion 4 500 100 100 100 4 20 fifo
 ./codexion 5 800 200 200 200 2 15 edf
+./codexion 1 800 200 200 200 2 15 edf
 
 ./codexion 5 340 100 100 10 10 10 edf   # Stress test for edf
 ```
@@ -110,58 +103,93 @@ The bigger the difference the least likely burnout becomes.
 #### Project Structure
 
 ```
-codexion
-    coders/
-        include/
-        src/
-    README.md
+codexion/
+├── coders/
+│   ├── include/
+│   │   └── codexion.h
+│   └── src/
+│       ├── coder_actions.c
+│       ├── coder_utils.c
+│       ├── dongles.c
+│       ├── monitor.c
+│       ├── main.c
+│       ├── cleanup.c
+│       ├── parser.c
+│       ├── setup_1.c
+│       ├── setup_2.c
+│       ├── utils_1.c
+│       └── utils_2.c
+├── Makefile
+├── README.md
+├── schema.svg
+└── .gitignore
+
 ```
 
 #### Object Structure
 
-Coder
-```ini
-int			id;				// ID of the coder.
-int			request_order;	// ...
-int			n_compiles;		// Number of compiles done.
-long			last_compile_time;	// Last time a compile was done.
-long			priority_ms;	// ...
-pthread_t		thread;			// Thread that runs the coder routine.
-pthread_mutex_t		time_lock;		// Protects the time at which actions are executed.
-t_dongle		*dongle_l;		// Dongle to the left of the coder.
-t_dongle		*dongle_r;		// Dongle to the right of the coder.
-t_hub			*hub;			// Pointer to the hub.
+**Coder**
+
+|<div style="width:135px">Name</div>|Type|Description|
+|--|:--|:--|
+|id | int | ID of the coder.|
+|n_compiles | int | Number of compiles done.|
+|last_compile_time | long | Last time a compile was done.|
+|thread | pthread_t | Thread that runs the coder routine.|
+|lock | pthread_mutex_t | Protects ... .|
+|dongle_l | t_dongle* | Dongle to the left of the coder.|
+|dongle_r | t_dongle* | Dongle to the right of the coder.|
+|hub | t_hub* | Pointer to the hub.|
+
+
+**Dongle**
+|<div style="width:135px"></div>|||
+|--|--|--|
+|is_available | int | 1 is the dongle is available, 0 if it's not. |
+|last_used_time | long | Time at which the dongle was last used. |
+|lock | pthread_mutex_t | ... |
+|cond | pthread_cond_t | ... |
+|heap | t_heap | Heap of the dongle.|
+
+**Hub**
+|<div style="width:135px"></div>|||
+|--|--|--|
+|n_coders | int | `number_of_coders` |
+|burnout_time | long | `time_to_burnout` |
+|compile_time | long | `time_to_compile` |
+|debug_time | long | `time_to_debug` |
+|refactor_time | long | `time_to_refactor` |
+|n_compiles_required | int | `number_of_compiles_required` |
+|cooldown | long | `dongle_cooldown` |
+|scheduler | t_scheduler | `scheduler` |
+|start_flag | int | Shared flag to start the execution.|
+|stop_flag | int | Shared flag to stop the execution.|
+|ready_count | int | Amount of actors ready to start the execution.|
+|start_time | long | Time that the execution starts.|
+|lock | pthread_mutex_t | Protects ... .|
+|stop_lock | pthread_mutex_t | Protects the stop flag.|
+|log_lock | pthread_mutex_t | Protects the printf inside log_status().|
+|dongles | t_dongle* | Array of dongles in the program.|
+|coders| t_coder* | Array of coders in the program.|
+
+**Heap**
+```c
+t_request
+	int      id;      // The ID of the coder that made the request.
+	int      value;   // The metric used to determine which coder will go first.
+
+t_heap
+	int      size; // The amount of elements in the heap (0-2).
+	t_request   requests[2];   // Every dongle has to manage the requests from 2 coders.
 ```
 
-Dongle
-```c
-int			id;				// ID of the dongle.
-int			is_available;	// 1 is the dongle is available, 0 if it's not
-long			last_used_time;	    // Time at which the dongle was last used.
-pthread_mutex_t		lock;			// ...
-pthread_cond_t		cond;			// ...
-t_heap			heap;			// ...
-```
+##### Time Management
 
-Hub
-```c
-int			n_coders;				// Number of coders.
-long			time_burnout;			// Time to burnout.
-long			time_compile;			// Time to compile.
-long			time_debug;				// Time to debug.
-long			time_refactor;			// Time to refactor.
-int			n_compiles_required;	// Number of compiles required of each coder.
-long			dongle_cooldown;		// Dongle cooldown.
-t_scheduler		scheduler;				// Type of scheduler (FIFO / EDF).
-int			request_counter;    // ...
-long			start_time;		// Time that the execution starts.
-int			stop_flag;		// Shared flag to stop the execution.
-pthread_mutex_t		request_lock;	// Protects request_counter.
-pthread_mutex_t		stop_lock;		// Protects the stop flag.
-pthread_mutex_t		log_lock;		// Protects the printf inside log_status.
-t_dongle		*dongles;	// Array of dongles in the execution.
-t_coder			*coders;	// Array of coders in the execution.
-```
+All timestamps values printed in the log and arguments above are in miliseconds (ms). However, the sleep function used an timestamps created during runtime are in microseconds (us).
+
+1 ms   = 1000 us
+
+500 ms = 500000 us
 
 #### Libraries
 ```c
@@ -171,20 +199,6 @@ t_coder			*coders;	// Array of coders in the execution.
 # include <string.h>	// for strcmp()
 # include <unistd.h>	// for usleep()
 # include <sys/time.h>	// for struct timeval
-```
-
-#### Macros
-```c
-// Miliseconds to microseconds
-//  used because our timestamp values are in miliseconds and usleep() deals with microseconds.
-# define MS_TO_US 1000
-
-// Messages used for logging the state of each coder.
-# define LOG_DONGLE "has taken a dongle"
-# define LOG_COMPILE "is compiling"
-# define LOG_DEBUG "is debugging"
-# define LOG_REFACTOR "is refactoring"
-# define LOG_BURNOUT "burned out"
 ```
 
 ## Blocking cases handled

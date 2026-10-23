@@ -6,13 +6,16 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:59 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 12:08:25 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/23 13:43:28 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-static int	check_overflow(long int n, int sign)
+/**
+ * Checks that the number given is within the range and INT should have.
+ */
+static int	is_int(long int n, int sign)
 {
 	if (n * sign > INT_MAX)
 		return (1);
@@ -21,6 +24,11 @@ static int	check_overflow(long int n, int sign)
 	return (0);
 }
 
+/**
+ * Custom 'atoi' parsing function that prevents overflow or underflow.
+ * Returns -1 if at any point the string passed contains invalid characters
+ * or exceeds the limits of an int.
+ */
 static int	ft_atoi(char *str)
 {
 	long int	result;
@@ -43,13 +51,16 @@ static int	ft_atoi(char *str)
 		if (str[i] < '0' || str[i] > '9')
 			return (-1);
 		result = (str[i] - '0') + (result * 10);
-		if (check_overflow(result, sign))
+		if (is_int(result, sign))
 			return (-1);
 		i++;
 	}
 	return (int)(result * sign);
 }
 
+/**
+ * Assigns the corresponding values to the hub.
+ */
 static int	fill_hub(t_hub *hub, char **argv)
 {
 	hub->n_coders = atoi(argv[1]);
@@ -68,6 +79,10 @@ static int	fill_hub(t_hub *hub, char **argv)
 	return (0);
 }
 
+/**
+ * Iterates through the command line arguments the program receives,
+ * and assigns their values to the hub attributes.
+ */
 int	parse_args(int argc, char **argv, t_hub *hub)
 {
 	int	i;

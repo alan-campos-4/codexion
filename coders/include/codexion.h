@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 18:56:52 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/23 17:53:39 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ typedef enum s_scheduler
 typedef struct s_request
 {
 	int					id;
-	int					metric;
+	int					value;
 }						t_request;
 
 typedef struct s_heap
@@ -62,7 +62,7 @@ typedef struct s_dongle
 typedef struct s_coder
 {
 	int					id;
-	int					completed_compiles;
+	int					n_compiles;
 	long				last_compile_time;
 	pthread_mutex_t		lock;
 	t_dongle			*dongle_l;
@@ -91,44 +91,46 @@ typedef struct s_hub
 	t_coder				*coders;
 }						t_hub;
 
-/**** coders.c *****/
+/***** coders.c *****/
 void					*coder_routine(void *arg);
 int						coder_sleep(t_coder *coder, long time);
 int						wait_for_others(t_coder *coder);
 int						release_dongle(t_dongle *dongle);
 void					*single_coder(t_coder *coder, t_dongle *dongle);
 
-/**** utils.c *****/
+/***** dongles.c *****/
+int						try_get_dongles(t_coder *coder);
+
+/***** monitor.c *****/
+void					*monitor_routine(void *arg);
+void					wakeup_coders(t_coder *coders);
+
+/***** utils.c *****/
 long					get_time(long start_time);
 int						coder_sleep(t_coder *coder, long time);
 int						stop_program(t_hub *hub);
 int						log_status(t_hub *hub, int id, char *str);
 
-/**** parser.c *****/
+/***** parser.c *****/
 int						parse_args(int argc, char **argv, t_hub *hub);
 
-
-int						init_sim(t_hub *hub, t_coder **coders,
+/***** setup.c *****/
+int						setup_program(t_hub *hub, t_coder **coders,
 							t_dongle **dongles);
+
 pthread_t				*init_threads(t_coder *coders);
 
-int						get_dongles(t_coder *coder);
-
 void					remove_request_top(t_heap *heap);
-void					pre_register_heaps(t_dongle *first, t_dongle *second,
-							t_coder *coder, int metric);
-
-void					*monitor_routine(void *arg);
+void					add_requests_heap(t_coder *coder, t_dongle *first,
+							t_dongle *second, int metric);
 
 t_dongle				*init_dongles(int n);
 t_coder					*init_coders(int n);
 int						init_hub(t_hub *hub);
 void					wait_for_start(t_coder *coders);
 
-void					wakeup_coders(t_coder *coders);
-
 void					swap(t_request *x, t_request *y);
-int						pick_metric(t_coder *coder);
+int						get_request_value(t_coder *coder);
 
 t_dongle				*dongle_cleanup(t_dongle *dongle, int32_t n,
 							int32_t m_clean, int32_t cond_clean);

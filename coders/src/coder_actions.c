@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:33:11 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 16:01:32 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/23 17:53:45 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 /**
  * The coder's compile action.
  * - Logs the action
- * - Updates completed_compiles and last_compile_time.
+ * - Updates n_compiles and last_compile_time.
  * - Releases the dongles.
  */
 static int	coder_compile(t_coder *coder)
@@ -28,7 +28,7 @@ static int	coder_compile(t_coder *coder)
 	if (coder_sleep(coder, (int)coder->hub->compile_time))
 		return (1);
 	pthread_mutex_lock(&coder->lock);
-	coder->completed_compiles += 1;
+	coder->n_compiles += 1;
 	pthread_mutex_unlock(&coder->lock);
 	if (release_dongle(coder->dongle_l))
 		return (1);
@@ -86,7 +86,7 @@ int	coder_sleep(t_coder *coder, long time)
 			return (1);
 		if (get_time(0) - start_time > time_to_wait)
 			return (0);
-		usleep(MS_TO_US);
+		usleep(100);
 	}
 	return (0);
 }
@@ -95,8 +95,9 @@ int	coder_sleep(t_coder *coder, long time)
  * The coders' threads routine.
  * - Waits for the other actors.
  * - Initializes last_compile_time.
- * - Performs all dongle actions in a loop.
  * - If a coder is in an even position, wait for a time to avoid a race.
+ * - Performs all dongle actions in a loop until the program
+ * 	is indicated to stop.
  */
 void	*coder_routine(void *arg)
 {
@@ -117,11 +118,11 @@ void	*coder_routine(void *arg)
 	}
 	while (1)
 	{
-		if (get_dongles(coder)
-				|| coder_compile(coder)
-				|| coder_debug(coder)
-				|| coder_refactor(coder))
-			break;
+		if (try_get_dongles(coder)
+			|| coder_compile(coder)
+			|| coder_debug(coder)
+			|| coder_refactor(coder))
+			break ;
 	}
 	return (NULL);
 }

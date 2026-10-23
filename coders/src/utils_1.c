@@ -6,14 +6,14 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 15:44:16 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/23 17:41:44 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 /**
- * Get the time in miliseconds.
+ * Get the time in microseconds.
  * get_time(0) returns the current time.
  */
 long	get_time(long start_time)
@@ -47,16 +47,16 @@ int	stop_program(t_hub *hub)
  */
 int	log_status(t_hub *hub, int id, char *str)
 {
-	long long	timestamp;
+	long long	timestamp_in_ms;
 
 	pthread_mutex_lock(&hub->log_lock);
-	timestamp = (get_time(0) - hub->start_time) / MS_TO_US;
+	timestamp_in_ms = (get_time(0) - hub->start_time) / MS_TO_US;
 	if (stop_program(hub) && (strcmp(str, LOG_BURNOUT)))
 	{
 		pthread_mutex_unlock(&hub->log_lock);
 		return (1);
 	}
-	printf("%lld %i %s\n", timestamp, id, str);
+	printf("%lld %i %s\n", timestamp_in_ms, id, str);
 	pthread_mutex_unlock(&hub->log_lock);
 	return (0);
 }

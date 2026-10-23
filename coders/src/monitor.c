@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:35:37 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 15:43:03 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/23 18:00:05 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ static int	check_for_burnout(t_coder *coders, int i, int last_compile_time)
 /**
  * ...
  */
-int	routine_primer(t_coder *coders, int *i, int *all_done)
+static int	routine_primer(t_coder *coders, int *i, int *all_done)
 {
 	if (*all_done)
 	{
@@ -105,7 +105,7 @@ void	*monitor_routine(void *arg)
 	while (1)
 	{
 		pthread_mutex_lock(&coders[i].lock);
-		completed_compiles = coders[i].completed_compiles;
+		completed_compiles = coders[i].n_compiles;
 		last_compile_time = coders[i].last_compile_time;
 		pthread_mutex_unlock(&coders[i].lock);
 		if (check_for_burnout(coders, i++, last_compile_time))

@@ -6,14 +6,17 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:47:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 15:46:49 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/23 17:15:11 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 /**
- * ...
+ * Moves the smallest request to the top of the heap.
+ * - The index of the parent request is the one on top.
+ * - If the value of the parent request is bigger than the
+ * 	value of current one, swap them.
  */
 static void	bubble_up(t_request *requests, int i)
 {
@@ -21,8 +24,8 @@ static void	bubble_up(t_request *requests, int i)
 
 	while (i > 0)
 	{
-		parent_idx = (i - 1) / 2;
-		if (requests[i].metric < requests[parent_idx].metric)
+		parent_idx = (i - 1);// / 2;
+		if (requests[i].value < requests[parent_idx].value)
 			swap(&requests[parent_idx], &requests[i]);
 		else
 			break ;
@@ -33,7 +36,7 @@ static void	bubble_up(t_request *requests, int i)
 /**
  * ...
  */
-static void	heapify(t_request *requests, int parent, int size)
+/*static void	heapify(t_request *requests, int parent, int size)
 {
 	int	left_child_idx;
 	int	right_child_idx;
@@ -55,23 +58,10 @@ static void	heapify(t_request *requests, int parent, int size)
 		swap(&requests[least], &requests[parent]);
 		parent = least;
 	}
-}
+}*/
 
 /**
- * ...
- */
-void	add_request(t_heap *heap, int id, int metric)
-{
-	if (!heap || (heap->size == 2))
-		return ;
-	heap->requests[heap->size].id = id;
-	heap->requests[heap->size].metric = metric;
-	bubble_up(heap->requests, heap->size);
-	heap->size += 1;
-}
-
-/**
- * ...
+ * Removes the request on the top of the heap.
  */
 void	remove_request_top(t_heap *heap)
 {
@@ -80,20 +70,44 @@ void	remove_request_top(t_heap *heap)
 	if (&heap->requests[0] != &heap->requests[heap->size - 1])
 		swap(&heap->requests[0], &heap->requests[heap->size - 1]);
 	heap->size -= 1;
-	heapify(heap->requests, 0, heap->size);
+	//heapify(heap->requests, 0, heap->size);
 	return ;
 }
 
 /**
- * ...
+ * Adds a request to the given heap and increases the size.
+ * The request with the smallest metric will be placed
+ * at the top of the heap.
  */
-void	pre_register_heaps(t_dongle *first, t_dongle *second,
-	t_coder *coder, int metric)
+void	add_request(t_heap *heap, int id, int metric)
+{
+	if (!heap || (heap->size == 2))
+		return ;
+	heap->requests[heap->size].id = id;
+	heap->requests[heap->size].value = metric;
+	bubble_up(heap->requests, heap->size);
+	heap->size += 1;
+}
+
+/**
+ * Safely add the requests from the coder to the two dongles' heaps.
+ */
+void	add_requests_heap(t_coder *coder, t_dongle *first, t_dongle *second,
+		int metric)
 {
 	pthread_mutex_lock(&first->lock);
-	pthread_mutex_lock(&second->lock);
 	add_request(&first->heap, coder->id, metric);
+	pthread_mutex_unlock(&first->lock);
+	pthread_mutex_lock(&second->lock);
 	add_request(&second->heap, coder->id, metric);
 	pthread_mutex_unlock(&second->lock);
-	pthread_mutex_unlock(&first->lock);
 }
+
+/*
+pthread_mutex_lock(&first->lock);
+pthread_mutex_lock(&second->lock);
+add_request(&first->heap, coder->id, metric);
+add_request(&second->heap, coder->id, metric);
+pthread_mutex_unlock(&second->lock);
+pthread_mutex_unlock(&first->lock);
+*/

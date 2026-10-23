@@ -6,12 +6,15 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 17:27:43 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/23 13:55:09 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/**
+ * ...
+ */
 static void	join_threads(pthread_t *ts, int n)
 {
 	int	i;
@@ -24,6 +27,9 @@ static void	join_threads(pthread_t *ts, int n)
 	}
 }
 
+/**
+ * ...
+ */
 static int	create_monitor(pthread_t *monitor, t_coder *coders)
 {
 	if (!pthread_create(monitor, NULL, monitor_routine, coders))
@@ -36,6 +42,9 @@ static int	create_monitor(pthread_t *monitor, t_coder *coders)
 	return (1);
 }
 
+/**
+ * ...
+ */
 int	codexion(t_coder *coders, t_dongle *dongles, t_hub *hub)
 {
 	pthread_t	*c_threads;
@@ -70,11 +79,9 @@ int	main(int ac, char **av)
 	int			init_status;
 
 	if (parse_args(ac, av, &hub))
-	{
 		return (1);
-	}
-	init_status = init_sim(&hub, &coders, &dongles);
-	//if (init_status == 0)
-	//	return (codexion(coders, dongles, &hub));
+	init_status = setup_program(&hub, &coders, &dongles);
+	if (init_status == 0)
+		return (codexion(coders, dongles, &hub));
 	return (init_status);
 }

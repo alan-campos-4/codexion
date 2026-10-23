@@ -34,7 +34,7 @@ typedef struct s_coder
 	pthread_mutex_t			lock;
 	pthread_mutex_t			coder_mutex;
 	t_program				*program;
-	unsigned int			completed_compiles;
+	unsigned int			n_compiles;
 	unsigned long			last_compile_time;
 }							t_coder;
 
@@ -55,7 +55,7 @@ void	log_status(t_coder *coder, char *msg)
 {
 	pthread_mutex_lock(&coder->program->print_lock);
 	printf("Thread %u: %s - %u. Time %lu.\n", coder->id, msg,
-		coder->completed_compiles, coder->program->curr_time);
+		coder->n_compiles, coder->program->curr_time);
 	pthread_mutex_unlock(&coder->program->print_lock);
 }
 
@@ -73,7 +73,7 @@ void	*thread_routine(void *data)
 			//break ;
 		pthread_mutex_lock(&coder->coder_mutex);
 		usleep(TIME_BURNOUT * 100);
-		coder->completed_compiles++;
+		coder->n_compiles++;
 		coder->program->curr_time = get_time(coder->program->start_time);
 		coder->last_compile_time = coder->program->curr_time;
 		log_status(coder, "count");
@@ -130,13 +130,13 @@ void	*monitor_routine(void *arg)
 	while (1)
 	{
 		// pthread_mutex_lock(&coders[i].lock);
-		// completed_compiles = coders[i].completed_compiles;
+		// n_compiles = coders[i].n_compiles;
 		//last_compile_time = coders[i].last_compile_time;
 		//if (burnout_handle(coders, i++, last_compile_time))
 			//break ;
 		for (int i=0; i < N_CODERS; i++)
 		{
-			if (coders[i].completed_compiles == N_COMPILES)
+			if (coders[i].n_compiles == N_COMPILES)
 				c++;
 		}
 		printf("%i threads completed\n", c);
@@ -174,7 +174,7 @@ int	main1(void)
 	for (int i = 0; i < N_CODERS; i++)
 	{
 		coders[i].id = i + 1;
-		coders[i].completed_compiles = 0;
+		coders[i].n_compiles = 0;
 		coders[i].program = &program;
 		pthread_mutex_init(&coders[i].coder_mutex, NULL);
 		pthread_mutex_init(&coders[i].lock, NULL);

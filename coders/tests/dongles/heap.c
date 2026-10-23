@@ -21,7 +21,7 @@ static void	swap(t_request *x, t_request *y)
 	*x = tmp;
 }
 
-int	pick_metric(t_coder *coder)
+int	get_request_value(t_coder *coder)
 {
 	if (coder->hub->scheduler == EDF)
 		return (coder->last_compile_time + (coder->hub->time_burnout * 1000));
@@ -89,7 +89,7 @@ void	remove_request_top(t_heap *heap)
 	return ;
 }
 
-void	pre_register_heaps(t_dongle *first, t_dongle *second, t_coder *coder,
+void	add_requests_heap(t_dongle *first, t_dongle *second, t_coder *coder,
 		int metric)
 {
 	pthread_mutex_lock(&first->lock);

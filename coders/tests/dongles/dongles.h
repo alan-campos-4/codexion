@@ -94,9 +94,9 @@ int	    stop_program(t_hub *hub);
 void    *coder_routine(void *arg);
 void	sim_start(t_hub *hub);
 
-void	pre_register_heaps(t_dongle *first, t_dongle *second, t_coder *coder,
+void	add_requests_heap(t_dongle *first, t_dongle *second, t_coder *coder,
 		int metric);
-int		pick_metric(t_coder *coder);
+int		get_request_value(t_coder *coder);
 void	remove_request_top(t_heap *heap);
 
 void	cleanup(t_hub *hub);
