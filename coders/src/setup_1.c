@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:44:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 13:38:59 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/23 19:10:33 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,13 +40,13 @@ pthread_t	*init_threads(t_coder *coders)
 	return (t);
 }
 
-int	assign_coder_attr(t_coder *coders, t_dongle *dongles,
-	t_hub *hub)
+/**
+ * Assigns the coder's corresponding dongles and dongle.
+ */
+int	assign_coder_attr(t_coder *coders, t_dongle *dongles, t_hub *hub)
 {
 	int	i;
 
-	if (!coders || !dongles || !hub || !hub)
-		return (1);
 	i = 0;
 	hub->coders = coders;
 	while (i < hub->n_coders)
@@ -61,7 +61,8 @@ int	assign_coder_attr(t_coder *coders, t_dongle *dongles,
 
 /**
  * Execute after parsing the program arguments.
- * Sets up all the ...
+ * Sets up all the variables and attributes that are not obtained
+ * fromt the command line.
  */
 int	setup_program(t_hub *hub, t_coder **coders, t_dongle **dongles)
 {
