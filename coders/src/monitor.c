@@ -6,14 +6,14 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:35:37 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 18:00:05 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 12:57:31 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 /**
- * Broadcasts the hub's condition, and every coder's dongle's condition.
+ * Safely wake up the threads waiting each coder's dongle's condition variable.
  */
 void	wakeup_coders(t_coder *coders)
 {
@@ -98,7 +98,7 @@ void	*monitor_routine(void *arg)
 	int		completed_compiles;
 
 	coders = (t_coder *)arg;
-	if (wait_for_others(coders))
+	if (wait_for_others(coders->hub))
 		return (NULL);
 	i = 0;
 	all_done = 1;

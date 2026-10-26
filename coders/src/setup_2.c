@@ -31,9 +31,9 @@ t_dongle	*init_dongles(int n)
 		dongles[i].is_available = 1;
 		dongles[i].last_use_time = 0;
 		if (pthread_mutex_init(&dongles[i].lock, NULL))
-			return (dongle_cleanup(dongles, n, i, i), NULL);
+			return (cleanup_dongles(dongles, n, i, i), NULL);
 		if (pthread_cond_init(&dongles[i].cond, NULL))
-			return (dongle_cleanup(dongles, n, i + 1, i), NULL);
+			return (cleanup_dongles(dongles, n, i + 1, i), NULL);
 		i++;
 	}
 	return (dongles);
@@ -58,7 +58,7 @@ t_coder	*init_coders(int n)
 		coders[i].n_compiles = 0;
 		coders[i].last_compile_time = 0;
 		if (pthread_mutex_init(&coders[i].lock, NULL))
-			return (coder_cleanup(coders, n, i), NULL);
+			return (cleanup_coders(coders, n, i), NULL);
 		i++;
 	}
 	return (coders);
@@ -92,7 +92,7 @@ int	init_hub_2(t_hub *hub)
 	if (pthread_cond_init(&hub->cond, NULL))
 		log_lock_flag = 1;
 	if (stop_lock_flag || log_lock_flag || lock_flag)
-		return (hub_cleanup(hub, (lock_flag * 4 + log_lock_flag * 2
+		return (cleanup_hub(hub, (lock_flag * 4 + log_lock_flag * 2
 				+ stop_lock_flag * 1)));
 	return (0);
 }
@@ -100,7 +100,7 @@ int	init_hub_2(t_hub *hub)
 /**
  * Initialize the coder array.
  * Delete what has been assigned if anything goes wrong.
- * Please the hub_cleanup() docstring for more info.
+ * Please the cleanup_hub() docstring for more info.
  */
 int	init_hub(t_hub *hub)
 {
@@ -125,7 +125,7 @@ int	init_hub(t_hub *hub)
 	if (pthread_cond_init(&hub->cond, NULL))
 		log_lock_flag = 1;
 	if (stop_lock_flag || log_lock_flag || lock_flag)
-		return (hub_cleanup(hub, (lock_flag * 4 + log_lock_flag * 2
+		return (cleanup_hub(hub, (lock_flag * 4 + log_lock_flag * 2
 				+ stop_lock_flag * 1)));
 	return (0);
 }

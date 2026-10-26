@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:11:03 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 17:33:11 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 12:49:33 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,8 @@ static int	get_wait_time(t_dongle *dongle, int cooldown, int *wait)
 }
 
 /**
- * Checks for the wait time 
+ * Checks for the wait time of each dongle and makes the coder wait
+ * for the biggest amount of time.
  */
 static int	apply_cooldown(t_coder *coder, t_dongle *dl, t_dongle *dr)
 {
@@ -50,7 +51,7 @@ static int	apply_cooldown(t_coder *coder, t_dongle *dl, t_dongle *dr)
 		max_wait_time = dr_wait_time;
 	if (max_wait_time <= 0)
 		return (0);
-	return (coder_sleep(coder, max_wait_time));
+	return (coder_do(coder, max_wait_time));
 }
 
 /**
@@ -97,6 +98,9 @@ static int	check_and_take(t_coder *coder, t_dongle *dl, t_dongle *dr)
 
 /**
  * The coder's action for trying to obtaining its two assigned dongles.
+ * - Their requests is added to the corresponding dongles.
+ * - They are continiously trying to take them.
+ * - Once taken, they can go on to the next action.
  */
 int	try_get_dongles(t_coder *coder)
 {

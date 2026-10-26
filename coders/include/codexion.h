@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 19:07:44 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 13:03:46 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,7 @@ typedef struct s_coder
 	int					id;
 	int					n_compiles;
 	long				last_compile_time;
+	pthread_t			thread;
 	pthread_mutex_t		lock;
 	t_dongle			*dongle_l;
 	t_dongle			*dongle_r;
@@ -93,8 +94,7 @@ typedef struct s_hub
 
 /***** coders.c *****/
 void					*coder_routine(void *arg);
-int						coder_sleep(t_coder *coder, long time);
-int						wait_for_others(t_coder *coder);
+int						coder_do(t_coder *coder, long time);
 int						release_dongle(t_dongle *dongle);
 void					*single_coder(t_coder *coder, t_dongle *dongle);
 
@@ -119,10 +119,10 @@ int						setup_program(t_hub *hub, t_coder **coders,
 							t_dongle **dongles);
 
 /***** cleanup.c *****/
-void					dongle_cleanup(t_dongle *dongle, int n, int mutex_c,
+void					cleanup_dongles(t_dongle *dongle, int n, int mutex_c,
 							int cond_c);
-void					coder_cleanup(t_coder *coders, int n, int mutex_c);
-int						hub_cleanup(t_hub *hub, int flag);
+void					cleanup_coders(t_coder *coders, int n, int mutex_c);
+int						cleanup_hub(t_hub *hub, int flag);
 int						cleanup_all(t_dongle *dongles, t_coder *coders,
 							t_hub *hub);
 
@@ -135,10 +135,11 @@ void					swap(t_request *x, t_request *y);
 
 pthread_t				*init_threads(t_coder *coders);
 
-
 t_dongle				*init_dongles(int n);
 t_coder					*init_coders(int n);
 int						init_hub(t_hub *hub);
-void					wait_for_start(t_coder *coders);
+
+int						wait_for_others(t_hub *hub);
+void					wait_for_start(t_hub *hub);
 
 #endif

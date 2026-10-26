@@ -6,24 +6,24 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 13:56:59 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/22 15:13:03 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 13:01:35 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 /**
- * Performed at the start of the coder and monitor routines.
- * Indicates the actor performing it is ready and loops cond_wait
- *  until all other actors in the program are ready.
+ * To perform at the start of the coder and monitor routines.
+ * Indicate the actor that calls it is ready and wait
+ * until all other actors in the program are ready.
  */
-int	wait_for_others(t_coder *coder)
+int	wait_for_others(t_hub *hub)
 {
-	pthread_mutex_lock(&coder->hub->lock);
-	coder->hub->ready_count++;
-	while (!coder->hub->start_flag)
-		pthread_cond_wait(&coder->hub->cond, &coder->hub->lock);
-	pthread_mutex_unlock(&coder->hub->lock);
+	pthread_mutex_lock(&hub->lock);
+	hub->ready_count++;
+	while (!hub->start_flag)
+		pthread_cond_wait(&hub->cond, &hub->lock);
+	pthread_mutex_unlock(&hub->lock);
 	return (0);
 }
 
@@ -44,7 +44,10 @@ int	release_dongle(t_dongle *dongle)
 
 /**
  * Special action if the program only has one coder.
- * - ...
+ * This means that there is only one dongle, therefore
+ * the normal algorithm will not work.
+ * This lone coder is made to sleep until they burnout, effectively
+ * ending the program.
  */
 void	*single_coder(t_coder *coder, t_dongle *dongle)
 {
@@ -52,6 +55,6 @@ void	*single_coder(t_coder *coder, t_dongle *dongle)
 	dongle->is_available = 0;
 	pthread_mutex_unlock(&dongle->lock);
 	log_status(coder->hub, coder->id, LOG_DONGLE);
-	coder_sleep(coder, coder->hub->burnout_time);
+	coder_do(coder, coder->hub->burnout_time);
 	return (NULL);
 }

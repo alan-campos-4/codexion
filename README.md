@@ -89,8 +89,9 @@ The bigger the difference the least likely burnout becomes.
 
 #### Examples
 ```bash
-./codexion 6 400 100 100 100 4 20 fifo
+./codexion 6 400 100 100 100 3 20 edf
 ./codexion 4 500 100 100 100 4 20 fifo
+./codexion 5 400 100 100 100 2 10 fifo
 ./codexion 5 800 200 200 200 2 15 edf
 ./codexion 1 800 200 200 200 2 15 edf
 

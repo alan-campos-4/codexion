@@ -6,13 +6,18 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 14:06:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 19:04:54 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 11:35:14 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-void	dongle_cleanup(t_dongle *dongle, int n, int mutex_c, int cond_c)
+/**
+ * Cleans the dongle array, its mutexes and its conds.
+ * @param mutex_c The amount of coders whose pthread_mutex has been initialized.
+ * @param cond_c The amount of coders whose pthread_cond has been initialized.
+ */
+void	cleanup_dongles(t_dongle *dongle, int n, int mutex_c, int cond_c)
 {
 	int	i;
 
@@ -31,9 +36,10 @@ void	dongle_cleanup(t_dongle *dongle, int n, int mutex_c, int cond_c)
 }
 
 /**
- * Cleans
+ * Cleans the coder array and its mutexes.
+ * @param mutex_c The amount of coders whose pthread_mutex has been initialized.
  */
-void	coder_cleanup(t_coder *coders, int n, int mutex_c)
+void	cleanup_coders(t_coder *coders, int n, int mutex_c)
 {
 	int	i;
 
@@ -52,24 +58,26 @@ void	coder_cleanup(t_coder *coders, int n, int mutex_c)
 /**
  * Returns whether the number is divisible by the given dividend.
  */
-static int check_flag(int *num, int div)
+static int	check_flag(int *num, int div)
 {
 	if (*num == 0)
-        return (0);
-    if (*num >= div)
-    {
-        *num = *num - div;
-        return (1);
-    }
-    return (0);
+		return (0);
+	if (*num >= div)
+	{
+		*num = *num - div;
+		return (1);
+	}
+	return (0);
 }
 
 /**
  * Cleans the hub attributes depending on the flag.
- * This entire 'check_flag' system in necessary because I cannot
- * pass more than four arguments in a function :)))))
+ * @param flag An integer (0-16) that, when interpreted as four bits,
+ * 		determines which hub attibutes should be destroyed.
+ * This entire 'decimal to binary' system has been implemented because
+ * of the four-arguments-per-function restriction.
  */
-int	hub_cleanup(t_hub *hub, int flag)
+int	cleanup_hub(t_hub *hub, int flag)
 {
 	int	cond;
 	int	lock;
@@ -77,9 +85,9 @@ int	hub_cleanup(t_hub *hub, int flag)
 	int	stop_lock;
 
 	cond = check_flag(&flag, 8);
-    lock = check_flag(&flag, 4);
-    log_lock = check_flag(&flag, 2);
-    stop_lock = check_flag(&flag, 1);
+	lock = check_flag(&flag, 4);
+	log_lock = check_flag(&flag, 2);
+	stop_lock = check_flag(&flag, 1);
 	if (!hub)
 		return (1);
 	if (stop_lock)
@@ -98,13 +106,13 @@ int	hub_cleanup(t_hub *hub, int flag)
  */
 int	cleanup_all(t_dongle *dongles, t_coder *coders, t_hub *hub)
 {
-	int n;
+	int	n;
 
 	n = 0;
 	if (hub)
 		n = hub->n_coders;
-	dongle_cleanup(dongles, n, n, n);
-	coder_cleanup(coders, n, n);
-	hub_cleanup(hub, 16);
+	cleanup_dongles(dongles, n, n, n);
+	cleanup_coders(coders, n, n);
+	cleanup_hub(hub, 16);
 	return (0);
 }

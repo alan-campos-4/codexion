@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:33:11 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 17:53:45 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 13:01:18 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ static int	coder_compile(t_coder *coder)
 	pthread_mutex_unlock(&coder->lock);
 	if (log_status(coder->hub, coder->id, LOG_COMPILE))
 		return (1);
-	if (coder_sleep(coder, (int)coder->hub->compile_time))
+	if (coder_do(coder, coder->hub->compile_time))
 		return (1);
 	pthread_mutex_lock(&coder->lock);
 	coder->n_compiles += 1;
@@ -39,28 +39,24 @@ static int	coder_compile(t_coder *coder)
 
 /**
  * The coder's debug action.
- * - Logs the corresponding action.
- * - Sleeps for the corresponding amount of time.
  */
 static int	coder_debug(t_coder *coder)
 {
 	if (log_status(coder->hub, coder->id, LOG_DEBUG))
 		return (1);
-	if (coder_sleep(coder, coder->hub->debug_time))
+	if (coder_do(coder, coder->hub->debug_time))
 		return (1);
 	return (0);
 }
 
 /**
  * The coder's debug action.
- * - Logs the corresponding action.
- * - Sleeps for the corresponding amount of time.
  */
 static int	coder_refactor(t_coder *coder)
 {
 	if (log_status(coder->hub, coder->id, LOG_REFACTOR))
 		return (1);
-	if (coder_sleep(coder, coder->hub->refactor_time))
+	if (coder_do(coder, coder->hub->refactor_time))
 		return (1);
 	return (0);
 }
@@ -68,10 +64,10 @@ static int	coder_refactor(t_coder *coder)
 /* These functions are kept separate for better performance. :) */
 
 /**
- * The coder's sleep action.
- * - Sleep for the given amount of time. Can stop at any moment.
+ * Make the coder perform the given action, i.e.: wait for the
+ * given amount of time. Can stop at any moment.
  */
-int	coder_sleep(t_coder *coder, long time)
+int	coder_do(t_coder *coder, long time)
 {
 	long	start_time;
 	long	time_to_wait;
@@ -93,10 +89,10 @@ int	coder_sleep(t_coder *coder, long time)
 
 /**
  * The coders' threads routine.
- * - Waits for the other actors.
- * - Initializes last_compile_time.
+ * - Wait for the other actors.
+ * - Initialize last_compile_time.
  * - If a coder is in an even position, wait for a time to avoid a race.
- * - Performs all dongle actions in a loop until the program
+ * - Perform all dongle actions in a loop until the program
  * 	is indicated to stop.
  */
 void	*coder_routine(void *arg)
@@ -104,7 +100,7 @@ void	*coder_routine(void *arg)
 	t_coder	*coder;
 
 	coder = (t_coder *)arg;
-	if (wait_for_others(coder))
+	if (wait_for_others(coder->hub))
 		return (NULL);
 	pthread_mutex_lock(&coder->lock);
 	coder->last_compile_time = coder->hub->start_time;
@@ -113,7 +109,7 @@ void	*coder_routine(void *arg)
 		return (single_coder(coder, coder->dongle_l));
 	if (coder->id % 2 == 0 || coder->id == coder->hub->n_coders)
 	{
-		if (coder_sleep(coder, (coder->hub->compile_time) / 2))
+		if (coder_do(coder, (coder->hub->compile_time) / 2))
 			return (NULL);
 	}
 	while (1)

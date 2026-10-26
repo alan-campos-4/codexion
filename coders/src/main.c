@@ -6,14 +6,14 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 13:55:09 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 13:03:26 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 /**
- * ...
+ * Join the given threads.
  */
 static void	join_threads(pthread_t *ts, int n)
 {
@@ -28,7 +28,7 @@ static void	join_threads(pthread_t *ts, int n)
 }
 
 /**
- * ...
+ * Return whether the creation of the monitor thread was successful.
  */
 static int	create_monitor(pthread_t *monitor, t_coder *coders)
 {
@@ -62,7 +62,7 @@ int	codexion(t_coder *coders, t_dongle *dongles, t_hub *hub)
 		join_threads(c_threads, hub->n_coders);
 	else
 	{
-		wait_for_start(coders);
+		wait_for_start(hub);
 		join_threads(c_threads, hub->n_coders);
 		pthread_join(monitor, NULL);
 	}

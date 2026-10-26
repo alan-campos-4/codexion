@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:44:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 19:10:33 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 13:04:22 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,23 +84,24 @@ int	setup_program(t_hub *hub, t_coder **coders, t_dongle **dongles)
 }
 
 /**
+ * To perform after creating the coder and monitor threads.
  * Start the program after all the actors have indicated they are ready.
- * Sets the start_flag, sets the start_time, and broadcasts the hub's condition.
+ * Set the start_flag, the start_time, and wake up the waiting threads.
  */
-void	wait_for_start(t_coder *coders)
+void	wait_for_start(t_hub *hub)
 {
 	while (1)
 	{
-		pthread_mutex_lock(&coders->hub->lock);
-		if (coders->hub->ready_count == coders->hub->n_coders + 1)
+		pthread_mutex_lock(&hub->lock);
+		if (hub->ready_count == hub->n_coders + 1)
 			break ;
-		pthread_mutex_unlock(&coders->hub->lock);
+		pthread_mutex_unlock(&hub->lock);
 		usleep(MS_TO_US);
 	}
-	coders->hub->start_time = get_time(0);
-	coders->hub->start_flag = 1;
-	pthread_cond_broadcast(&coders->hub->cond);
-	pthread_mutex_unlock(&coders->hub->lock);
+	hub->start_time = get_time(0);
+	hub->start_flag = 1;
+	pthread_cond_broadcast(&hub->cond);
+	pthread_mutex_unlock(&hub->lock);
 }
 
 

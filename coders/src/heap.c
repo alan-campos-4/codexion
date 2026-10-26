@@ -6,11 +6,25 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:47:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 17:15:11 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 11:09:31 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
+
+/**
+ * Removes the request on the top of the heap.
+ */
+void	remove_request_top(t_heap *heap)
+{
+	if (!heap || !heap->size)
+		return ;
+	if (&heap->requests[0] != &heap->requests[heap->size - 1])
+		swap(&heap->requests[0], &heap->requests[heap->size - 1]);
+	heap->size -= 1;
+	//heapify(heap->requests, 0, heap->size);
+	return ;
+}
 
 /**
  * Moves the smallest request to the top of the heap.
@@ -31,47 +45,6 @@ static void	bubble_up(t_request *requests, int i)
 			break ;
 		i = parent_idx;
 	}
-}
-
-/**
- * ...
- */
-/*static void	heapify(t_request *requests, int parent, int size)
-{
-	int	left_child_idx;
-	int	right_child_idx;
-	int	least;
-
-	least = parent;
-	while (1)
-	{
-		left_child_idx = (parent * 2) + 1;
-		right_child_idx = (parent * 2) + 2;
-		if (left_child_idx < size && requests[left_child_idx].metric
-			< requests[parent].metric)
-			least = left_child_idx;
-		if (right_child_idx < size && requests[right_child_idx].metric
-			< requests[least].metric)
-			least = right_child_idx;
-		if (least == parent)
-			break ;
-		swap(&requests[least], &requests[parent]);
-		parent = least;
-	}
-}*/
-
-/**
- * Removes the request on the top of the heap.
- */
-void	remove_request_top(t_heap *heap)
-{
-	if (!heap || !heap->size)
-		return ;
-	if (&heap->requests[0] != &heap->requests[heap->size - 1])
-		swap(&heap->requests[0], &heap->requests[heap->size - 1]);
-	heap->size -= 1;
-	//heapify(heap->requests, 0, heap->size);
-	return ;
 }
 
 /**
