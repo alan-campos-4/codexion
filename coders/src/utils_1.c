@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 17:41:44 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 17:23:39 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,4 +59,33 @@ int	log_status(t_hub *hub, int id, char *str)
 	printf("%lld %i %s\n", timestamp_in_ms, id, str);
 	pthread_mutex_unlock(&hub->log_lock);
 	return (0);
+}
+
+/**
+ * Return a value depending on the sceduler:
+ * - for EDF, the last_compile_time + burnout_time.
+ * - for FIFO, the current time.
+ * This value is used by the coders when trying to obtain dongles,
+ * the smaller value will be placed at the top of the request heap.
+ */
+int	get_request_value(t_coder *coder)
+{
+	if (coder->hub->scheduler == EDF)
+		return (coder->last_compile_time
+			+ ((int)coder->hub->burnout_time * MS_TO_US));
+	else
+		return (get_time(0));
+}
+
+/**
+ * Swap two requests.
+ * Used by the heap functions.
+ */
+void	swap(t_request *x, t_request *y)
+{
+	t_request	tmp;
+
+	tmp = *y;
+	*y = *x;
+	*x = tmp;
 }

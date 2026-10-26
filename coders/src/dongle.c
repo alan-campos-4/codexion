@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:11:03 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 12:49:33 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 13:24:50 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,8 +55,9 @@ static int	apply_cooldown(t_coder *coder, t_dongle *dl, t_dongle *dr)
 }
 
 /**
- * ...
- * - Unlocks after locking at the start of check_and_take.
+ * Make the dongle that was not available wait until
+ * its cond is broadcast by the coder release or other event.
+ * Unlock both mutexes after being locked at the start of check_and_take.
  */
 static void	wait_for_dongle(t_dongle *to_wait, t_dongle *other)
 {
@@ -99,7 +100,7 @@ static int	check_and_take(t_coder *coder, t_dongle *dl, t_dongle *dr)
 /**
  * The coder's action for trying to obtaining its two assigned dongles.
  * - Their requests is added to the corresponding dongles.
- * - They are continiously trying to take them.
+ * - They continiously try to take them.
  * - Once taken, they can go on to the next action.
  */
 int	try_get_dongles(t_coder *coder)

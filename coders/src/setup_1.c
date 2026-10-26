@@ -6,12 +6,16 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:44:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 13:04:22 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 17:16:36 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
+/**
+ * Initialize the coder's threads.
+ * Delete what has been assigned if anything goes wrong.
+ */
 pthread_t	*init_threads(t_coder *coders)
 {
 	pthread_t	*t;
@@ -41,12 +45,101 @@ pthread_t	*init_threads(t_coder *coders)
 }
 
 /**
- * Assigns the coder's corresponding dongles and dongle.
+ * Initialize the dongle array.
+ * Delete what has been assigned if anything goes wrong.
  */
-int	assign_coder_attr(t_coder *coders, t_dongle *dongles, t_hub *hub)
+t_dongle	*init_dongles(int n)
+{
+	t_dongle	*dongles;
+	int			i;
+
+	dongles = malloc(sizeof(t_dongle) * n);
+	if (!dongles)
+		return (NULL);
+	i = 0;
+	while (i < n)
+	{
+		dongles[i].heap.size = 0;
+		dongles[i].is_available = 1;
+		dongles[i].last_use_time = 0;
+		if (pthread_mutex_init(&dongles[i].lock, NULL))
+			return (cleanup_dongles(dongles, n, i, i), NULL);
+		if (pthread_cond_init(&dongles[i].cond, NULL))
+			return (cleanup_dongles(dongles, n, i + 1, i), NULL);
+		i++;
+	}
+	return (dongles);
+}
+
+/**
+ * Initialize the coder array.
+ * Delete what has been assigned if anything goes wrong.
+ */
+t_coder	*init_coders(int n)
+{
+	t_coder	*coders;
+	int		i;
+
+	coders = malloc(sizeof(t_coder) * n);
+	if (!coders)
+		return (NULL);
+	i = 0;
+	while (i < n)
+	{
+		coders[i].id = i + 1;
+		coders[i].n_compiles = 0;
+		coders[i].last_compile_time = 0;
+		if (pthread_mutex_init(&coders[i].lock, NULL))
+			return (cleanup_coders(coders, n, i), NULL);
+		i++;
+	}
+	return (coders);
+}
+
+/**
+ * Initialize the hub attributes that are not obtained from the
+ * arguments, deleting what has been assigned if anything goes wrong.
+ * Please the cleanup_hub() docstring for more info.
+ */
+int	init_hub(t_hub *hub)
+{
+	int	stop_lock_flag;
+	int	log_lock_flag;
+	int	lock_flag;
+
+	hub->stop_flag = 0;
+	hub->start_flag = 0;
+	hub->ready_count = 0;
+	stop_lock_flag = 0;
+	log_lock_flag = 0;
+	lock_flag = 0;
+	if (pthread_mutex_init(&hub->stop_lock, NULL))
+		return (1);
+	if (pthread_mutex_init(&hub->log_lock, NULL))
+		stop_lock_flag = 1;
+	if (pthread_mutex_init(&hub->lock, NULL))
+		log_lock_flag = 1;
+	if (pthread_cond_init(&hub->cond, NULL))
+		log_lock_flag = 1;
+	if (stop_lock_flag || log_lock_flag || lock_flag)
+		return (cleanup_hub(hub, (lock_flag * 4 + log_lock_flag * 2
+				+ stop_lock_flag * 1)));
+	return (0);
+}
+
+/**
+ * Execute after parsing the program arguments.
+ * Set up all the variables and attributes that are not obtained
+ * fromt the command line.
+ */
+int	setup_program(t_hub *hub, t_coder *coders, t_dongle *dongles)
 {
 	int	i;
 
+	if (!hub || !coders || !dongles)
+		return (1);
+	if (init_hub(hub))
+		return (1);
 	i = 0;
 	hub->coders = coders;
 	while (i < hub->n_coders)
@@ -59,50 +152,6 @@ int	assign_coder_attr(t_coder *coders, t_dongle *dongles, t_hub *hub)
 	return (0);
 }
 
-/**
- * Execute after parsing the program arguments.
- * Sets up all the variables and attributes that are not obtained
- * fromt the command line.
- */
-int	setup_program(t_hub *hub, t_coder **coders, t_dongle **dongles)
-{
-	if (!hub)
-		return (1);
-	else if (!hub->n_coders)
-		return (2);
-	if (init_hub(hub))
-		return (1);
-	*coders = init_coders(hub->n_coders);
-	*dongles = init_dongles(hub->n_coders);
-	if (!*coders || !*dongles)
-	{
-		cleanup_all(*dongles, *coders, hub);
-		return (1);
-	}
-	assign_coder_attr(*coders, *dongles, hub);
-	return (0);
-}
-
-/**
- * To perform after creating the coder and monitor threads.
- * Start the program after all the actors have indicated they are ready.
- * Set the start_flag, the start_time, and wake up the waiting threads.
- */
-void	wait_for_start(t_hub *hub)
-{
-	while (1)
-	{
-		pthread_mutex_lock(&hub->lock);
-		if (hub->ready_count == hub->n_coders + 1)
-			break ;
-		pthread_mutex_unlock(&hub->lock);
-		usleep(MS_TO_US);
-	}
-	hub->start_time = get_time(0);
-	hub->start_flag = 1;
-	pthread_cond_broadcast(&hub->cond);
-	pthread_mutex_unlock(&hub->lock);
-}
 
 
 

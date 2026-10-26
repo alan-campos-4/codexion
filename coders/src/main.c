@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 13:03:26 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 17:06:51 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,22 +30,22 @@ static void	join_threads(pthread_t *ts, int n)
 /**
  * Return whether the creation of the monitor thread was successful.
  */
-static int	create_monitor(pthread_t *monitor, t_coder *coders)
+static int	create_monitor(pthread_t *monitor, t_hub *hub)
 {
-	if (!pthread_create(monitor, NULL, monitor_routine, coders))
+	if (!pthread_create(monitor, NULL, monitor_routine, hub))
 		return (0);
-	pthread_mutex_lock(&coders->hub->lock);
-	coders->hub->stop_flag = 0;
-	coders->hub->start_flag = 0;
-	pthread_cond_broadcast(&coders->hub->cond);
-	pthread_mutex_unlock(&coders->hub->lock);
+	pthread_mutex_lock(&hub->lock);
+	hub->stop_flag = 1;
+	hub->start_flag = 1;
+	pthread_cond_broadcast(&hub->cond);
+	pthread_mutex_unlock(&hub->lock);
 	return (1);
 }
 
 /**
  * ...
  */
-int	codexion(t_coder *coders, t_dongle *dongles, t_hub *hub)
+int	codexion(t_hub *hub, t_coder *coders, t_dongle *dongles)
 {
 	pthread_t	*c_threads;
 	pthread_t	monitor;
@@ -57,7 +57,7 @@ int	codexion(t_coder *coders, t_dongle *dongles, t_hub *hub)
 		cleanup_all(dongles, coders, hub);
 		return (1);
 	}
-	monitor_status = create_monitor(&monitor, coders);
+	monitor_status = create_monitor(&monitor, hub);
 	if (monitor_status == 1)
 		join_threads(c_threads, hub->n_coders);
 	else
@@ -71,17 +71,21 @@ int	codexion(t_coder *coders, t_dongle *dongles, t_hub *hub)
 	return (monitor_status);
 }
 
-int	main(int ac, char **av)
+int	main(int argc, char **argv)
 {
 	t_hub		hub;
 	t_coder		*coders;
 	t_dongle	*dongles;
 	int			init_status;
 
-	if (parse_args(ac, av, &hub))
+	if (parse_args(argc, argv, &hub))
 		return (1);
-	init_status = setup_program(&hub, &coders, &dongles);
+	dongles = init_dongles(hub.n_coders);
+	coders = init_coders(hub.n_coders);
+	if (!coders || !dongles)
+		return (1);
+	init_status = setup_program(&hub, coders, dongles);
 	if (init_status == 0)
-		return (codexion(coders, dongles, &hub));
+		return (codexion(&hub, coders, dongles));
 	return (init_status);
 }

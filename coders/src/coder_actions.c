@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:33:11 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 13:01:18 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 17:20:02 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,14 +22,15 @@ static int	coder_compile(t_coder *coder)
 {
 	pthread_mutex_lock(&coder->lock);
 	coder->last_compile_time = get_time(0);
+	coder->n_compiles += 1;
 	pthread_mutex_unlock(&coder->lock);
 	if (log_status(coder->hub, coder->id, LOG_COMPILE))
 		return (1);
 	if (coder_do(coder, coder->hub->compile_time))
 		return (1);
-	pthread_mutex_lock(&coder->lock);
-	coder->n_compiles += 1;
-	pthread_mutex_unlock(&coder->lock);
+	//pthread_mutex_lock(&coder->lock);
+	//coder->n_compiles += 1;
+	//pthread_mutex_unlock(&coder->lock);
 	if (release_dongle(coder->dongle_l))
 		return (1);
 	if (release_dongle(coder->dongle_r))
@@ -102,11 +103,11 @@ void	*coder_routine(void *arg)
 	coder = (t_coder *)arg;
 	if (wait_for_others(coder->hub))
 		return (NULL);
+	if (coder->hub->n_coders == 1)
+		return (single_coder(coder, coder->dongle_l));
 	pthread_mutex_lock(&coder->lock);
 	coder->last_compile_time = coder->hub->start_time;
 	pthread_mutex_unlock(&coder->lock);
-	if (coder->hub->n_coders == 1)
-		return (single_coder(coder, coder->dongle_l));
 	if (coder->id % 2 == 0 || coder->id == coder->hub->n_coders)
 	{
 		if (coder_do(coder, (coder->hub->compile_time) / 2))

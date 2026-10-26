@@ -6,26 +6,11 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 13:56:59 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 13:01:35 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/26 17:24:55 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-
-/**
- * To perform at the start of the coder and monitor routines.
- * Indicate the actor that calls it is ready and wait
- * until all other actors in the program are ready.
- */
-int	wait_for_others(t_hub *hub)
-{
-	pthread_mutex_lock(&hub->lock);
-	hub->ready_count++;
-	while (!hub->start_flag)
-		pthread_cond_wait(&hub->cond, &hub->lock);
-	pthread_mutex_unlock(&hub->lock);
-	return (0);
-}
 
 /**
  * The coder's release dongle action.
