@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 18:47:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 12:49:11 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 13:59:12 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@ void	remove_request_top(t_heap *heap)
 	if (&heap->requests[0] != &heap->requests[heap->size - 1])
 		swap(&heap->requests[0], &heap->requests[heap->size - 1]);
 	heap->size -= 1;
-	//heapify(heap->requests, 0, heap->size);
 	return ;
 }
 
@@ -38,7 +37,7 @@ static void	bubble_up(t_request *requests, int i)
 
 	while (i > 0)
 	{
-		parent_idx = (i - 1);// / 2;
+		parent_idx = (i - 1);
 		if (requests[i].value < requests[parent_idx].value)
 			swap(&requests[parent_idx], &requests[i]);
 		else

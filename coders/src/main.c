@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 11:58:22 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 14:13:19 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,11 +59,11 @@ pthread_t	*create_coder_threads(t_coder *coders)
 }
 
 /**
- * Return whether the creation of the monitor thread was successful.
+ * Return whether the creation of the monitor_thread thread was successful.
  */
-static int	create_monitor_thread(pthread_t *monitor, t_hub *hub)
+static int	create_monitor_thread(pthread_t *monitor_thread, t_hub *hub)
 {
-	if (!pthread_create(monitor, NULL, monitor_routine, hub))
+	if (!pthread_create(monitor_thread, NULL, monitor_routine, hub))
 		return (0);
 	pthread_mutex_lock(&hub->lock);
 	hub->stop_flag = 1;
@@ -74,27 +74,25 @@ static int	create_monitor_thread(pthread_t *monitor, t_hub *hub)
 }
 
 /**
- * Create the coder and monitor threads and start the program.
+ * Create the coder and monitor_thread threads and start the program.
  */
 static int	codexion(t_hub *hub, t_coder *coders)
 {
-	pthread_t	*c_threads;
-	pthread_t	monitor;
+	pthread_t	*coder_threads;
+	pthread_t	monitor_thread;
 	int			monitor_status;
 
-	c_threads = create_coder_threads(coders);
-	if (!c_threads)
+	coder_threads = create_coder_threads(coders);
+	if (!coder_threads)
 		return (1);
-	monitor_status = create_monitor_thread(&monitor, hub);
-	if (monitor_status == 1)
-		join_threads(c_threads, hub->n_coders);
-	else
+	monitor_status = create_monitor_thread(&monitor_thread, hub);
+	if (monitor_status == 0)
 	{
 		wait_for_start(hub);
-		join_threads(c_threads, hub->n_coders);
-		pthread_join(monitor, NULL);
+		pthread_join(monitor_thread, NULL);
 	}
-	free(c_threads);
+	join_threads(coder_threads, hub->n_coders);
+	free(coder_threads);
 	return (monitor_status);
 }
 

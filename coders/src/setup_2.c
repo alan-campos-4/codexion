@@ -6,10 +6,8 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 14:01:58 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 17:23:59 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 14:07:15 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-
-

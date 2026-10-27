@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 13:10:15 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 14:02:28 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,7 @@ int	log_status(t_hub *hub, int id, char *str)
 	if (stop_program(hub))
 	{
 		printf("%lld %i %s (%i)\n",
-				timestamp_in_ms, id, "stopped...", hub->stop_flag);
+			timestamp_in_ms, id, "stopped...", hub->stop_flag);
 		pthread_mutex_unlock(&hub->log_lock);
 		return (1);
 	}

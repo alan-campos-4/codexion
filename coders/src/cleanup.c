@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 14:06:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 11:01:11 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 13:58:26 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -71,7 +71,7 @@ static int	check_flag(int *num, int div)
 }
 
 /**
- * Cleans the hub attributes depending on the flag.
+ * Destroys the hub attributes depending on the flag.
  * @param flag An integer (0-16) that, when interpreted as four bits,
  * 		determines which hub attibutes should be destroyed.
  * This entire 'decimal to binary' system has been implemented because

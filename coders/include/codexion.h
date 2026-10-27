@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 13:53:55 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 14:27:22 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -92,35 +92,41 @@ typedef struct s_hub
 	t_coder				*coders;
 }						t_hub;
 
-/***** coders.c *****/
+//***** coders.c *****
+
 void					*coder_routine(void *arg);
 int						coder_do(t_coder *coder, long time);
 int						release_dongle(t_dongle *dongle);
 void					*single_coder(t_coder *coder, t_dongle *dongle);
 
-/***** dongles.c *****/
-int						try_get_dongles(t_coder *coder);
+//***** dongles.c *****
 
-/***** monitor.c *****/
+int						try_get_dongles(t_coder *coder, long cooldown);
+
+//***** monitor.c *****
+
 void					*monitor_routine(void *arg);
 
-/***** heap.c *****/
+//***** heap.c *****
+
 void					add_requests_heap(t_coder *coder, t_dongle *first,
 							t_dongle *second, int metric);
 void					add_request(t_heap *heap, int id, int metric);
 void					remove_request_top(t_heap *heap);
 
-/***** parser.c *****/
+//***** parser.c *****
+
 int						parse_args(int argc, char **argv, t_hub *hub);
 
-/***** setup.c *****/
+//***** setup.c *****
+
 t_dongle				*init_dongles(int n);
 t_coder					*init_coders(int n);
-int						init_hub(t_hub *hub);
 int						setup_program(t_hub *hub, t_coder *coders,
 							t_dongle *dongles);
 
-/***** cleanup.c *****/
+//***** cleanup.c *****
+
 void					cleanup_dongles(t_dongle *dongle, int n, int mutex_c,
 							int cond_c);
 void					cleanup_coders(t_coder *coders, int n, int mutex_c);
@@ -128,7 +134,8 @@ int						cleanup_hub(t_hub *hub, int flag);
 int						cleanup_all(t_hub *hub, t_coder *coders,
 							t_dongle *dongles);
 
-/***** utils.c *****/
+//***** utils.c *****
+
 long					get_time(long start_time);
 int						stop_program(t_hub *hub);
 int						log_status(t_hub *hub, int id, char *str);

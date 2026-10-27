@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 13:56:59 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 17:24:55 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 14:01:40 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 
 /**
  * The coder's release dongle action.
- * - Marks the dongle as used and available.
- * - Broadcasts the condition.
+ * - Mark the dongle as used and available.
+ * - Broadcast the condition.
  */
 int	release_dongle(t_dongle *dongle)
 {

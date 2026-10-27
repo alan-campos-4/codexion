@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:33:11 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 13:54:00 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 14:27:50 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,9 +14,9 @@
 
 /**
  * The coder's compile action.
- * - Logs the action
- * - Updates n_compiles and last_compile_time.
- * - Releases the dongles.
+ * - Log the action
+ * - Update n_compiles and last_compile_time.
+ * - Release the dongles.
  */
 static int	coder_compile(t_coder *coder)
 {
@@ -28,9 +28,6 @@ static int	coder_compile(t_coder *coder)
 		return (1);
 	if (coder_do(coder, coder->hub->compile_time))
 		return (1);
-	//pthread_mutex_lock(&coder->lock);
-	//coder->n_compiles += 1;
-	//pthread_mutex_unlock(&coder->lock);
 	if (release_dongle(coder->dongle_l))
 		return (1);
 	if (release_dongle(coder->dongle_r))
@@ -120,7 +117,7 @@ void	*coder_routine(void *arg)
 	}
 	while (1)
 	{
-		if (try_get_dongles(coder) || coder_compile(coder)
+		if (try_get_dongles(coder, hub->cooldown) || coder_compile(coder)
 			|| coder_debug(coder) || coder_refactor(coder))
 			break ;
 	}

@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:59 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/23 13:43:28 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 13:59:52 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -55,7 +55,7 @@ static int	ft_atoi(char *str)
 			return (-1);
 		i++;
 	}
-	return (int)(result * sign);
+	return ((int)result * sign);
 }
 
 /**
