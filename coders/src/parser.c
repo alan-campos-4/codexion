@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:59 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 13:59:52 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 16:00:02 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@
 /**
  * Checks that the number given is within the range and INT should have.
  */
-static int	is_int(long int n, int sign)
+static int	is_int(long n, int sign)
 {
 	if (n * sign > INT_MAX)
 		return (1);
@@ -31,9 +31,9 @@ static int	is_int(long int n, int sign)
  */
 static int	ft_atoi(char *str)
 {
-	long int	result;
-	int			sign;
-	int			i;
+	long	result;
+	int		sign;
+	int		i;
 
 	i = 0;
 	sign = 1;

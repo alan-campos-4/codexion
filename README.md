@@ -18,7 +18,6 @@
 3. [Structure](#structure)
    - [Project Structure](#project-structure)
    - [Object Structure](#object-structure)
-   - [Time Management](#time-management)
    - [Libraries](#libraries)
 3. [Blocking cases handled](#blocking-cases-handled)
 4. [Thread synchronization mechanisms](#thread-synchronization-mechanisms)
@@ -124,7 +123,6 @@ codexion/
 ├── README.md
 ├── schema.svg
 └── .gitignore
-
 ```
 
 #### Object Structure
@@ -142,8 +140,8 @@ codexion/
 |dongle_r | t_dongle* | Dongle to the right of the coder.|
 |hub | t_hub* | Pointer to the hub.|
 
-
 **Dongle**
+
 |<div style="width:135px"></div>|||
 |--|--|--|
 |is_available | int | 1 is the dongle is available, 0 if it's not. |
@@ -153,6 +151,7 @@ codexion/
 |heap | t_heap | Heap of the dongle.|
 
 **Hub**
+
 |<div style="width:135px"></div>|||
 |--|--|--|
 |n_coders | int | `number_of_coders` |
@@ -174,32 +173,22 @@ codexion/
 |coders| t_coder* | Array of coders in the program.|
 
 **Heap**
-```c
-t_request
-	int      id;      // The ID of the coder that made the request.
-	int      value;   // The metric used to determine which coder will go first.
 
-t_heap
-	int      size; // The amount of elements in the heap (0-2).
-	t_request   requests[2];   // Every dongle has to manage the requests from 2 coders.
-```
-
-##### Time Management
-
-All timestamps values printed in the log and arguments above are in miliseconds (ms). However, the sleep function used an timestamps created during runtime are in microseconds (us).
-
-1 ms   = 1000 us
-
-500 ms = 500000 us
+Every dongle contains a heap of requests, and can have at 2 at most.<br>
+A request is made up of the ID of the coder that makes the request and a value.<br>
+This value will be different depending on the scheduler.
+The request with the lowest value will always be at the top of the heap.
 
 #### Libraries
+
 ```c
-# include <pthread.h>   // for POSIX threads
-# include <stdio.h>	// for printf()
-# include <stdlib.h>	// for atoi(), atol(), NULL
-# include <string.h>	// for strcmp()
-# include <unistd.h>	// for usleep()
-# include <sys/time.h>	// for struct timeval
+#include <pthread.h>   // for POSIX threads
+#include <sys/time.h>	// for struct timeval
+#include <unistd.h>	// for usleep()
+#include <stdio.h>	// for printf()
+#include <stdlib.h>	// for atoi(), NULL
+#include <string.h>	// for strcmp()
+#include <limits.h> // for INT_MAX, INT_MIN
 ```
 
 ## Blocking cases handled

@@ -6,14 +6,14 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 15:56:21 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 18:08:38 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 /**
- * Get the time in microseconds.
+ * Get the time in miliseconds.
  * get_time(0) returns the current time.
  */
 long	get_time(long start_time)
@@ -21,7 +21,7 @@ long	get_time(long start_time)
 	struct timeval	tv;
 
 	gettimeofday(&tv, NULL);
-	return ((((int)tv.tv_sec * 1000) + tv.tv_usec / 1000) - start_time);
+	return (((int)tv.tv_sec * 1000 + tv.tv_usec / 1000) - start_time);
 }
 /*
 return (tv.tv_sec * 1000 + tv.tv_usec / 1000 - start_time);
@@ -47,14 +47,12 @@ int	stop_program(t_hub *hub)
  */
 int	log_status(t_hub *hub, int id, char *str)
 {
-	long timestamp_in_ms;
+	long	timestamp_in_ms;
 
 	pthread_mutex_lock(&hub->log_lock);
 	timestamp_in_ms = get_time(hub->start_time);
 	if (stop_program(hub))
 	{
-		printf("%ld %i %s\n",
-			timestamp_in_ms, id, "stopped...");
 		pthread_mutex_unlock(&hub->log_lock);
 		return (1);
 	}

@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 14:13:19 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 17:48:15 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ static void	join_threads(pthread_t *ts, int n)
  * Initialize the coder's threads.
  * Delete what has been assigned if anything goes wrong.
  */
-pthread_t	*create_coder_threads(t_coder *coders)
+static pthread_t	*create_coder_threads(t_coder *coders)
 {
 	pthread_t	*t;
 	int			i;
@@ -74,9 +74,10 @@ static int	create_monitor_thread(pthread_t *monitor_thread, t_hub *hub)
 }
 
 /**
- * Create the coder and monitor_thread threads and start the program.
+ * Create the coder and monitor_thread threads and try to start the program.
+ * Return whether the program was able to start.
  */
-static int	codexion(t_hub *hub, t_coder *coders)
+static int	start_program(t_hub *hub, t_coder *coders)
 {
 	pthread_t	*coder_threads;
 	pthread_t	monitor_thread;
@@ -96,6 +97,9 @@ static int	codexion(t_hub *hub, t_coder *coders)
 	return (monitor_status);
 }
 
+/**
+ * Main function
+ */
 int	main(int argc, char **argv)
 {
 	t_hub		hub;
@@ -111,7 +115,7 @@ int	main(int argc, char **argv)
 		return (1);
 	if (setup_program(&hub, coders, dongles))
 		return (1);
-	start = codexion(&hub, coders);
+	start = start_program(&hub, coders);
 	cleanup_all(&hub, coders, dongles);
 	return (start);
 }

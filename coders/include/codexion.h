@@ -6,21 +6,20 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 15:49:06 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 17:37:48 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CODEXION_H
 # define CODEXION_H
 
-# include <limits.h>
 # include <pthread.h>
-# include <stdint.h>
+# include <sys/time.h>
+# include <unistd.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
-# include <sys/time.h>
-# include <unistd.h>
+# include <limits.h>
 
 # define LOG_DONGLE "has taken a dongle"
 # define LOG_COMPILE "is compiling"
@@ -77,8 +76,8 @@ typedef struct s_hub
 	long				compile_time;
 	long				debug_time;
 	long				refactor_time;
-	long				n_compiles_required;
-	int					cooldown;
+	int					n_compiles_required;
+	long				cooldown;
 	t_scheduler			scheduler;
 	int					start_flag;
 	int					stop_flag;
