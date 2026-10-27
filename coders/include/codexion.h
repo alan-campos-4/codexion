@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 17:03:57 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 13:53:55 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,6 @@ int						try_get_dongles(t_coder *coder);
 
 /***** monitor.c *****/
 void					*monitor_routine(void *arg);
-void					wakeup_coders(t_coder *coders);
 
 /***** heap.c *****/
 void					add_requests_heap(t_coder *coder, t_dongle *first,
@@ -115,16 +114,19 @@ void					remove_request_top(t_heap *heap);
 int						parse_args(int argc, char **argv, t_hub *hub);
 
 /***** setup.c *****/
-int						setup_program(t_hub *hub, t_coder **coders,
-							t_dongle **dongles);
+t_dongle				*init_dongles(int n);
+t_coder					*init_coders(int n);
+int						init_hub(t_hub *hub);
+int						setup_program(t_hub *hub, t_coder *coders,
+							t_dongle *dongles);
 
 /***** cleanup.c *****/
 void					cleanup_dongles(t_dongle *dongle, int n, int mutex_c,
 							int cond_c);
 void					cleanup_coders(t_coder *coders, int n, int mutex_c);
 int						cleanup_hub(t_hub *hub, int flag);
-int						cleanup_all(t_dongle *dongles, t_coder *coders,
-							t_hub *hub);
+int						cleanup_all(t_hub *hub, t_coder *coders,
+							t_dongle *dongles);
 
 /***** utils.c *****/
 long					get_time(long start_time);
@@ -132,14 +134,8 @@ int						stop_program(t_hub *hub);
 int						log_status(t_hub *hub, int id, char *str);
 int						get_request_value(t_coder *coder);
 void					swap(t_request *x, t_request *y);
-
-pthread_t				*init_threads(t_coder *coders);
-
-t_dongle				*init_dongles(int n);
-t_coder					*init_coders(int n);
-int						init_hub(t_hub *hub);
-
 int						wait_for_others(t_hub *hub);
 void					wait_for_start(t_hub *hub);
+void					wakeup_coders(t_coder *coders);
 
 #endif

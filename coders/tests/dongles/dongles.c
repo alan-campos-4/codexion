@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/20 15:04:31 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/21 12:11:23 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 13:33:40 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -119,7 +119,7 @@ static int	check_and_take(t_dongle *first, t_dongle *second,
 	return (1);
 }
 
-int	try_get_dongles(t_coder *coder)
+int	get_dongles(t_coder *coder)
 {
 	t_dongle	*f;
 	t_dongle	*s;
@@ -249,7 +249,7 @@ void    *coder_routine(void *arg)
 	}
 	while (1)
 	{
-		if (try_get_dongles(coder) || compile(coder)
+		if (get_dongles(coder) || compile(coder)
 			|| debug(coder) || refactor(coder))
 			return (NULL);
 	}

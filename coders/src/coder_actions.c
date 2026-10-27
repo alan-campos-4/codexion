@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:33:11 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 17:20:02 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 13:54:00 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -80,7 +80,10 @@ int	coder_do(t_coder *coder, long time)
 	while (1)
 	{
 		if (stop_program(coder->hub))
+		{
+			log_status(coder->hub, coder->id, "stopped");
 			return (1);
+		}
 		if (get_time(0) - start_time > time_to_wait)
 			return (0);
 		usleep(100);
@@ -94,31 +97,31 @@ int	coder_do(t_coder *coder, long time)
  * - Initialize last_compile_time.
  * - If a coder is in an even position, wait for a time to avoid a race.
  * - Perform all dongle actions in a loop until the program
- * 	is indicated to stop.
+ * is indicated to stop.
  */
 void	*coder_routine(void *arg)
 {
 	t_coder	*coder;
+	t_hub	*hub;
 
 	coder = (t_coder *)arg;
-	if (wait_for_others(coder->hub))
+	hub = coder->hub;
+	if (wait_for_others(hub))
 		return (NULL);
-	if (coder->hub->n_coders == 1)
+	if (hub->n_coders == 1)
 		return (single_coder(coder, coder->dongle_l));
 	pthread_mutex_lock(&coder->lock);
-	coder->last_compile_time = coder->hub->start_time;
+	coder->last_compile_time = hub->start_time;
 	pthread_mutex_unlock(&coder->lock);
-	if (coder->id % 2 == 0 || coder->id == coder->hub->n_coders)
+	if (coder->id % 2 == 0 || coder->id == hub->n_coders)
 	{
-		if (coder_do(coder, (coder->hub->compile_time) / 2))
+		if (coder_do(coder, (hub->compile_time) / 2))
 			return (NULL);
 	}
 	while (1)
 	{
-		if (try_get_dongles(coder)
-			|| coder_compile(coder)
-			|| coder_debug(coder)
-			|| coder_refactor(coder))
+		if (try_get_dongles(coder) || coder_compile(coder)
+			|| coder_debug(coder) || coder_refactor(coder))
 			break ;
 	}
 	return (NULL);

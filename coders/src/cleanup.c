@@ -6,14 +6,14 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 14:06:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 11:35:14 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 11:01:11 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 /**
- * Cleans the dongle array, its mutexes and its conds.
+ * Frees the dongle array, destroys its mutexes and its conds.
  * @param mutex_c The amount of coders whose pthread_mutex has been initialized.
  * @param cond_c The amount of coders whose pthread_cond has been initialized.
  */
@@ -36,7 +36,7 @@ void	cleanup_dongles(t_dongle *dongle, int n, int mutex_c, int cond_c)
 }
 
 /**
- * Cleans the coder array and its mutexes.
+ * Frees the coder array and destroys its mutexes.
  * @param mutex_c The amount of coders whose pthread_mutex has been initialized.
  */
 void	cleanup_coders(t_coder *coders, int n, int mutex_c)
@@ -104,7 +104,7 @@ int	cleanup_hub(t_hub *hub, int flag)
 /**
  * Cleans and frees all the variables created for the program.
  */
-int	cleanup_all(t_dongle *dongles, t_coder *coders, t_hub *hub)
+int	cleanup_all(t_hub *hub, t_coder *coders, t_dongle *dongles)
 {
 	int	n;
 

@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:43:45 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 17:23:39 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 13:10:15 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,7 @@ return (((int)time.tv_sec * 1000000) + time.tv_usec);
 
 /**
  * Savely checks the program's stop flag, returning whether
- * the execution should stop (1) or continue(0).
+ * the execution should stop (1) or continue (0).
  */
 int	stop_program(t_hub *hub)
 {
@@ -51,18 +51,20 @@ int	log_status(t_hub *hub, int id, char *str)
 
 	pthread_mutex_lock(&hub->log_lock);
 	timestamp_in_ms = (get_time(0) - hub->start_time) / MS_TO_US;
-	if (stop_program(hub) && (strcmp(str, LOG_BURNOUT)))
+	if (stop_program(hub))
 	{
+		printf("%lld %i %s (%i)\n",
+				timestamp_in_ms, id, "stopped...", hub->stop_flag);
 		pthread_mutex_unlock(&hub->log_lock);
 		return (1);
 	}
-	printf("%lld %i %s\n", timestamp_in_ms, id, str);
+	printf("%lld %i %s (%i)\n", timestamp_in_ms, id, str, hub->stop_flag);
 	pthread_mutex_unlock(&hub->log_lock);
 	return (0);
 }
 
 /**
- * Return a value depending on the sceduler:
+ * Return a value for the coder depending on the sceduler:
  * - for EDF, the last_compile_time + burnout_time.
  * - for FIFO, the current time.
  * This value is used by the coders when trying to obtain dongles,
@@ -72,7 +74,7 @@ int	get_request_value(t_coder *coder)
 {
 	if (coder->hub->scheduler == EDF)
 		return (coder->last_compile_time
-			+ ((int)coder->hub->burnout_time * MS_TO_US));
+			+ (coder->hub->burnout_time * MS_TO_US));
 	else
 		return (get_time(0));
 }

@@ -6,43 +6,11 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:44:02 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 17:16:36 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 11:40:07 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
-
-/**
- * Initialize the coder's threads.
- * Delete what has been assigned if anything goes wrong.
- */
-pthread_t	*init_threads(t_coder *coders)
-{
-	pthread_t	*t;
-	int		i;
-
-	t = malloc(sizeof(pthread_t) * coders->hub->n_coders);
-	if (!t)
-		return (NULL);
-	i = 0;
-	while (i < coders->hub->n_coders)
-	{
-		if (pthread_create(t + i, NULL, &coder_routine, coders + i))
-		{
-			pthread_mutex_lock(&coders->hub->lock);
-			coders->hub->start_flag = 1;
-			coders->hub->stop_flag = 1;
-			pthread_mutex_unlock(&coders->hub->lock);
-			wakeup_coders(coders);
-			while (i-- > 0)
-				pthread_join(t[i], NULL);
-			free(t);
-			return (NULL);
-		}
-		i++;
-	}
-	return (t);
-}
 
 /**
  * Initialize the dongle array.

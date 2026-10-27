@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 17:06:51 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 11:58:22 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,9 +28,40 @@ static void	join_threads(pthread_t *ts, int n)
 }
 
 /**
+ * Initialize the coder's threads.
+ * Delete what has been assigned if anything goes wrong.
+ */
+pthread_t	*create_coder_threads(t_coder *coders)
+{
+	pthread_t	*t;
+	int			i;
+
+	t = malloc(sizeof(pthread_t) * coders->hub->n_coders);
+	if (!t)
+		return (NULL);
+	i = 0;
+	while (i < coders->hub->n_coders)
+	{
+		if (pthread_create(t + i, NULL, &coder_routine, coders + i))
+		{
+			pthread_mutex_lock(&coders->hub->lock);
+			coders->hub->start_flag = 1;
+			coders->hub->stop_flag = 1;
+			pthread_mutex_unlock(&coders->hub->lock);
+			wakeup_coders(coders);
+			while (i-- > 0)
+				pthread_join(t[i], NULL);
+			return (free(t), NULL);
+		}
+		i++;
+	}
+	return (t);
+}
+
+/**
  * Return whether the creation of the monitor thread was successful.
  */
-static int	create_monitor(pthread_t *monitor, t_hub *hub)
+static int	create_monitor_thread(pthread_t *monitor, t_hub *hub)
 {
 	if (!pthread_create(monitor, NULL, monitor_routine, hub))
 		return (0);
@@ -43,21 +74,18 @@ static int	create_monitor(pthread_t *monitor, t_hub *hub)
 }
 
 /**
- * ...
+ * Create the coder and monitor threads and start the program.
  */
-int	codexion(t_hub *hub, t_coder *coders, t_dongle *dongles)
+static int	codexion(t_hub *hub, t_coder *coders)
 {
 	pthread_t	*c_threads;
 	pthread_t	monitor;
 	int			monitor_status;
 
-	c_threads = init_threads(coders);
+	c_threads = create_coder_threads(coders);
 	if (!c_threads)
-	{
-		cleanup_all(dongles, coders, hub);
 		return (1);
-	}
-	monitor_status = create_monitor(&monitor, hub);
+	monitor_status = create_monitor_thread(&monitor, hub);
 	if (monitor_status == 1)
 		join_threads(c_threads, hub->n_coders);
 	else
@@ -67,7 +95,6 @@ int	codexion(t_hub *hub, t_coder *coders, t_dongle *dongles)
 		pthread_join(monitor, NULL);
 	}
 	free(c_threads);
-	cleanup_all(dongles, coders, hub);
 	return (monitor_status);
 }
 
@@ -76,7 +103,7 @@ int	main(int argc, char **argv)
 	t_hub		hub;
 	t_coder		*coders;
 	t_dongle	*dongles;
-	int			init_status;
+	int			start;
 
 	if (parse_args(argc, argv, &hub))
 		return (1);
@@ -84,8 +111,9 @@ int	main(int argc, char **argv)
 	coders = init_coders(hub.n_coders);
 	if (!coders || !dongles)
 		return (1);
-	init_status = setup_program(&hub, coders, dongles);
-	if (init_status == 0)
-		return (codexion(&hub, coders, dongles));
-	return (init_status);
+	if (setup_program(&hub, coders, dongles))
+		return (1);
+	start = codexion(&hub, coders);
+	cleanup_all(&hub, coders, dongles);
+	return (start);
 }

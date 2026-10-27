@@ -3,7 +3,7 @@
 # Codexion
 
 <div align="center">
-    <img src="schema.svg" width="75%">
+    <img src="schema.svg" width="50%">
 </div>
 <br>
 
