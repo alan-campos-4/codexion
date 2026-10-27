@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:35:37 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 14:03:58 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 15:44:04 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,14 +35,12 @@ static int	is_coder_burntout(t_hub *hub, int id, int last_compile_time)
 {
 	if (last_compile_time)
 	{
-		if (get_time(0) - last_compile_time
-			< hub->burnout_time * MS_TO_US)
+		if (get_time(last_compile_time) < hub->burnout_time)
 			return (0);
 	}
 	else
 	{
-		if (get_time(0) - hub->start_time
-			< hub->burnout_time * MS_TO_US)
+		if (get_time(hub->start_time) < hub->burnout_time)
 			return (0);
 	}
 	log_status(hub, id, LOG_BURNOUT);

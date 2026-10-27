@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 14:27:22 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 15:49:06 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,6 @@
 # include <sys/time.h>
 # include <unistd.h>
 
-# define MS_TO_US 1000
 # define LOG_DONGLE "has taken a dongle"
 # define LOG_COMPILE "is compiling"
 # define LOG_DEBUG "is debugging"
@@ -95,7 +94,7 @@ typedef struct s_hub
 //***** coders.c *****
 
 void					*coder_routine(void *arg);
-int						coder_do(t_coder *coder, long time);
+int						coder_do(long time);
 int						release_dongle(t_dongle *dongle);
 void					*single_coder(t_coder *coder, t_dongle *dongle);
 

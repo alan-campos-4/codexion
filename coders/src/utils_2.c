@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 14:00:27 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/26 17:27:37 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/10/27 15:44:35 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	wait_for_start(t_hub *hub)
 		if (hub->ready_count == hub->n_coders + 1)
 			break ;
 		pthread_mutex_unlock(&hub->lock);
-		usleep(MS_TO_US);
+		usleep(100);
 	}
 	hub->start_time = get_time(0);
 	hub->start_flag = 1;
