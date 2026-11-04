@@ -6,20 +6,20 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 17:37:48 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/11/04 18:37:13 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef CODEXION_H
 # define CODEXION_H
 
+# include <limits.h>
 # include <pthread.h>
-# include <sys/time.h>
-# include <unistd.h>
 # include <stdio.h>
 # include <stdlib.h>
 # include <string.h>
-# include <limits.h>
+# include <sys/time.h>
+# include <unistd.h>
 
 # define LOG_DONGLE "has taken a dongle"
 # define LOG_COMPILE "is compiling"
@@ -115,6 +115,7 @@ void					remove_request_top(t_heap *heap);
 //***** parser.c *****
 
 int						parse_args(int argc, char **argv, t_hub *hub);
+int						ft_aton(char *str, long max_limit, long min_limit);
 
 //***** setup.c *****
 
@@ -139,8 +140,11 @@ int						stop_program(t_hub *hub);
 int						log_status(t_hub *hub, int id, char *str);
 int						get_request_value(t_coder *coder);
 void					swap(t_request *x, t_request *y);
+
 int						wait_for_others(t_hub *hub);
 void					wait_for_start(t_hub *hub);
 void					wakeup_coders(t_coder *coders);
+int						add_time_value(long *values, int *counter, char *str);
+int						add_int_value(int *values, int *counter, char *str);
 
 #endif

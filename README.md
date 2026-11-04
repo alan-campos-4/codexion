@@ -35,13 +35,15 @@ This is a project is about managing POSIX Threads and the values they contain.
 
 It is an extension of the Dining Philosophers problem, an example problem to illustrate synchronization issues and techniques for resolving them.
 
-**Original**: 
+**Original**:
+
 Formulated by Edsger Dijkstra in 1965 as an exam exercise, it deals with a five philosophers dining at a table, each with their own plate, and with five forks between each one.
 
 A philosopher needs the two forks next to them to eat from their plate. If a philosopher is not eating, they are thinking. After eating, they put down their forks and go back to thinking. If they do not eat within a certain time, they will starve.
 The exercise was to design a concurrent algorithm that will allow the philosophers to indefinately alternate between eating and thinking without starving, assuming they can only be eating or thinking.
 
 **Our version**:
+
 In this version, instead of philosophers who need forks to eat and not starve, we are dealing with coders who need dongles to compile and not burnout. But there's more.
 
 Once they are done debugging and have put down both dongles, a coder will refactor their code. And once they have refactoreing they will need to compile again. This is not indefinate, as we have a number of compiles required for each coder. The dongles have a cooldown after being used where they cannot be grabbed again.
@@ -87,16 +89,17 @@ To run the executable, you will need ro provide the all the arguments described:
 The bigger the difference the least likely burnout becomes.
 
 #### Examples
+
 ```bash
 ./codexion 6 400 100 100 100 3 20 edf
 ./codexion 4 500 100 100 100 4 20 fifo
 ./codexion 5 400 100 100 100 2 10 fifo
 ./codexion 5 800 200 200 200 2 15 edf
 ./codexion 1 800 200 200 200 2 15 edf
+./codexion 5 800 200 200 200 2 30 fifo
 
 ./codexion 5 340 100 100 10 10 10 edf   # Stress test for edf
 ```
-
 
 ## Structure
 
@@ -115,8 +118,7 @@ codexion/
 │       ├── main.c
 │       ├── cleanup.c
 │       ├── parser.c
-│       ├── setup_1.c
-│       ├── setup_2.c
+│       ├── setup.c
 │       ├── utils_1.c
 │       └── utils_2.c
 ├── Makefile
@@ -152,7 +154,7 @@ codexion/
 
 **Hub**
 
-|<div style="width:135px"></div>|||
+|<div style="width:135px">Name</div>|||
 |--|--|--|
 |n_coders | int | `number_of_coders` |
 |burnout_time | long | `time_to_burnout` |
@@ -174,21 +176,21 @@ codexion/
 
 **Heap**
 
-Every dongle contains a heap of requests, and can have at 2 at most.<br>
-A request is made up of the ID of the coder that makes the request and a value.<br>
+Every dongle will have two coders trying to take it. This is managed through a heap of *request*s, which will have 2 at most.<br>
+A *request* is made up of the ID of the coder that makes the request and a value.<br>
 This value will be different depending on the scheduler.
 The request with the lowest value will always be at the top of the heap.
 
 #### Libraries
 
 ```c
-#include <pthread.h>   // for POSIX threads
+#include <pthread.h>    // for POSIX threads
 #include <sys/time.h>	// for struct timeval
 #include <unistd.h>	// for usleep()
 #include <stdio.h>	// for printf()
 #include <stdlib.h>	// for atoi(), NULL
 #include <string.h>	// for strcmp()
-#include <limits.h> // for INT_MAX, INT_MIN
+#include <limits.h>  // for INT_MAX, INT_MIN
 ```
 
 ## Blocking cases handled

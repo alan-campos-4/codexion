@@ -6,16 +6,16 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/21 14:00:27 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 15:44:35 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/11/04 18:39:05 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
 /**
- * To perform after creating the coder and monitor threads.
  * Start the program after all the actors have indicated they are ready.
  * Set the start_flag, the start_time, and wake up the waiting threads.
+ * Performed after creating the coder and monitor threads.
  */
 void	wait_for_start(t_hub *hub)
 {
@@ -34,9 +34,9 @@ void	wait_for_start(t_hub *hub)
 }
 
 /**
- * To perform by the coder and monitor threads when they start.
  * Indicate the actor that calls it is ready and wait
  * until all other actors in the program are ready.
+ * Performed by the coder and monitor threads when they start.
  */
 int	wait_for_others(t_hub *hub)
 {
@@ -76,4 +76,34 @@ void	wakeup_coders(t_coder *coders)
 		pthread_mutex_unlock(&dr->lock);
 		i++;
 	}
+}
+
+/**
+ * If the string can be converted to long, add it to the array.
+ */
+int	add_time_value(long *values, int *counter, char *str)
+{
+	long	n;
+
+	n = ft_aton(str, LONG_MAX, LONG_MIN);
+	if (n <= 0)
+		return (1);
+	values[*counter] = n;
+	*counter = *counter + 1;
+	return (0);
+}
+
+/**
+ * If the string can be converted to int, add it to the array.
+ */
+int	add_int_value(int *values, int *counter, char *str)
+{
+	int	n;
+
+	n = ft_aton(str, INT_MAX, INT_MIN);
+	if (n <= 0)
+		return (1);
+	values[*counter] = n;
+	*counter = *counter + 1;
+	return (0);
 }
