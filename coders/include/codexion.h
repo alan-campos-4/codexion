@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:43 by alvespin          #+#    #+#             */
-/*   Updated: 2026/11/04 18:37:13 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/11/04 18:59:25 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,10 +72,10 @@ typedef struct s_coder
 typedef struct s_hub
 {
 	int					n_coders;
-	long				burnout_time;
-	long				compile_time;
-	long				debug_time;
-	long				refactor_time;
+	int					burnout_time;
+	int					compile_time;
+	int					debug_time;
+	int					refactor_time;
 	int					n_compiles_required;
 	long				cooldown;
 	t_scheduler			scheduler;
@@ -115,7 +115,6 @@ void					remove_request_top(t_heap *heap);
 //***** parser.c *****
 
 int						parse_args(int argc, char **argv, t_hub *hub);
-int						ft_aton(char *str, long max_limit, long min_limit);
 
 //***** setup.c *****
 
@@ -144,7 +143,5 @@ void					swap(t_request *x, t_request *y);
 int						wait_for_others(t_hub *hub);
 void					wait_for_start(t_hub *hub);
 void					wakeup_coders(t_coder *coders);
-int						add_time_value(long *values, int *counter, char *str);
-int						add_int_value(int *values, int *counter, char *str);
 
 #endif

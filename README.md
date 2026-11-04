@@ -55,11 +55,11 @@ Aside from that, the conflict between the coders' demands will be handled by two
 |Name|Description|Value|
 |--|--|--|
 | `number_of_coders` | Number of coders and dongles in the program. | integer >= 1 |
-| `time_to_burnout` | Time it takes for a coder to burnout. | long integer >= 1 |
-| `time_to_compile` | Time it takes for a coder to compile. | long integer >= 1 |
-| `time_to_debug` | Time it takes for a coder to debug. | long >= 1 |
-| `time_to_refactor` | Time it takes for a coder to refactor. | long >= 1 |
-| `dongle_cooldown` | Time it takes for a dongle to become available after use. | long >= 1 |
+| `time_to_burnout` | Time it takes for a coder to burnout. | integer >= 1 |
+| `time_to_compile` | Time it takes for a coder to compile. | integer >= 1 |
+| `time_to_debug` | Time it takes for a coder to debug. | integer >= 1 |
+| `time_to_refactor` | Time it takes for a coder to refactor. | integer >= 1 |
+| `dongle_cooldown` | Time it takes for a dongle to become available after use. | integer >= 1 |
 | `number_of_compiles_required` | Amount of times a coder must compile before the program ends. | integer >= 1 |
 | `scheduler` | Type of scheduler used to distribute dongles. | 'fifo' / 'edf' |
 
@@ -195,11 +195,79 @@ The request with the lowest value will always be at the top of the heap.
 
 ## Blocking cases handled
 
-|
+#### Deadlock Prevention
+
+There are four necessary and sufficient conditions for deadlock. These are known as the Coffman conditions. Brreaking them ensures a deadlock cannot occur.
+
+|Name|Problem|Solution
+|--|--|--|
+| Mutual Exclusion | No two processes can obtain a resource at the same time. | Dongles are protected with a pthread_mutex_t. |
+| Circular Wait | Given a series of processes {P1,P2,..,Pn}, P1 is waiting for resources held by P2, which is waiting for P3, ..., which is waiting for P1. | Each coder is assigned a specific order in which to be able to take the dongles.
+| Hold and Wait | Once a resource is obtained, a process keeps the resource locked. | If a coder fails to take their second required dongle, they immediately release the first and wait, ensuring they don't prevent others from taking it.
+| No pre-emption | Nothing can force the process to give up a resource. | Resources are never forcibly removed, threads release them voluntarily. |
+
+#### Starvation Prevention
+
+Starvation is mitigated by the **EDF (Earliest Deadline First)** scheduler. This policy prioritizes coders who compiled earlier in time and are closest to burnout (last_compile_time + burnout_time is lower), ensuring those closest to burning out get access to their dongles first.
+
+#### Cooldown Handling
+
+Each dongle stores a "last used" timestamp. Before a coder is allowed to take a dongle, the system verifies that `dongle_cooldown` milliseconds have passed since the timestamp. If the cooldown has not passed, the coder thread is made to wait for the remaining duration.
+
+#### Precise Burnout Detection
+
+Once a burnout occurs, a global stop flag is set, and all condition variables are broadcast to terminate the simulation immediately.
+
+##### Log Serialization
+
+All log output is managed by a mutex-protecyed function. This ensures that every line is printed correctly and in its entirety.
+
+#### Single-coder edge case.
+
+A single coder means only one dongle is on the table, so a coder cannot perform any action. The coder is made to wait until they burn out.
+
+#### Clean shutdown after burnout/completion.
+
+A stop_flag is checked at multiple points in a coder's cycle, so they will stop as soon as it next has the chance, without having to go throught the next step in their routine after the simulation should have already ended.
+
 
 ## Thread synchronization mechanisms
 
-|
+#### pthread_mutex_t lock (dongle)
+
+Protects a dongle's is_available, last_used_time, and its request heap. Any read or write to these fields happens strictly between a lock/unlock pair.
+
+#### pthread_cond_t cond (dongle)
+
+A coder waiting for a dongle sleeps on this condition variable via pthread_cond_wait, since becoming available again is partly time-driven (the cooldown expiring) rather than purely event-driven. Releasing a dongle calls pthread_cond_broadcast, so that every coder waiting on it re-checks the condition — necessary since more than one coder may be waiting on the same dongle, and only the one at the top of its priority heap should actually proceed.
+
+#### pthread_mutex_t lock (coder)
+
+Protects last_compile_time and n_compiles, which are written by the coder's compile action and read concurrently by the monitor thread and by the EDF scheduler.
+
+#### pthread_mutex_t stop_lock
+
+Protects the stop_flag, only modifiable by the monitor thread and read repeatedly by every coder action.
+
+#### pthread_mutex_t log_lock
+
+Protects the call to printf inside log_status, so two threads' log lines are never interleaved.
+
+#### pthread_mutex_t lock
+
+...
+
+#### pthread_cond_t cond
+
+...
+
+#### Synchronization Barrier
+
+After being created, all actor threads (coders and monitor) declare that they are ready, and are made to wait on a condition variable. Once all actors have indicated they are ready, the main thread broadcasts the signal, sets the start time, and the program can start.
+
+#### Race Condition prevention
+
+All coders that have an even ID, or are next to the first one, are given a tiny initial offset. This staggers the requests and allows the simulation to settle into a stable, rhythmic cycle of resource sharing. Otherwise, thanks to the synchronization barrier,  all coders would rush for the same dongles at the exact same millisecond, their request values would be the same, and thus a deadlock would occur.
 
 ## Resources
 
@@ -209,6 +277,8 @@ The request with the lowest value will always be at the top of the heap.
 - https://gcc.gnu.org/onlinedocs/cpp/Object-like-Macros.html
 - https://www.man7.org/linux/man-pages/man3/usleep.3.html
 - https://www.man7.org/linux/man-pages/man2/gettimeofday.2.html
+- https://csresources.github.io/SystemProgrammingWiki/SystemProgramming/Deadlock,-Part-2:-Deadlock-Conditions/
+- https://cs341.cs.illinois.edu/coursebook/Deadlock#coffman-conditions
 
 #### Guides
 

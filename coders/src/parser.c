@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:42:59 by alvespin          #+#    #+#             */
-/*   Updated: 2026/11/04 18:36:36 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/11/04 19:12:20 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,22 +15,21 @@
 /**
  * Checks that the number given is within the range and INT should have.
  */
-static int	is_int(long n, int sign, long max_limit, long min_limit)
+static int	is_int(long n, int sign)
 {
-	if (n * sign > max_limit)
+	if (n * sign > INT_MAX)
 		return (1);
-	if (n * sign < min_limit)
+	if (n * sign < INT_MIN)
 		return (1);
 	return (0);
 }
 
 /**
- * Custom 'ascii to number' parser that prevents overflow or underflow.
- * Can work as atoi or atol, depending on the limits given.
+ * Custom atoi parser that prevents overflow or underflow.
  * Returns -1 if at any point the string passed contains invalid characters
  * or exceeds the limits of an int.
  */
-int	ft_aton(char *str, long max_limit, long min_limit)
+static int	ft_atoi(char *str)
 {
 	long	result;
 	int		sign;
@@ -52,7 +51,7 @@ int	ft_aton(char *str, long max_limit, long min_limit)
 		if (str[i] < '0' || str[i] > '9')
 			return (-1);
 		result = (str[i] - '0') + (result * 10);
-		if (is_int(result, sign, max_limit, min_limit))
+		if (is_int(result, sign))
 			return (-1);
 		i++;
 	}
@@ -62,16 +61,15 @@ int	ft_aton(char *str, long max_limit, long min_limit)
 /**
  * Assign all the values found to the corresponding values in the hub.
  */
-static int	fill_hub(t_hub *hub, long *time_values, int *values,
-		char *scheduler)
+static int	fill_hub(t_hub *hub, int *values, char *scheduler)
 {
 	hub->n_coders = values[0];
-	hub->n_compiles_required = values[1];
-	hub->burnout_time = time_values[0];
-	hub->compile_time = time_values[1];
-	hub->debug_time = time_values[2];
-	hub->refactor_time = time_values[3];
-	hub->cooldown = time_values[4];
+	hub->burnout_time = values[1];
+	hub->compile_time = values[2];
+	hub->debug_time = values[3];
+	hub->refactor_time = values[4];
+	hub->n_compiles_required = values[5];
+	hub->cooldown = values[6];
 	if (!strcmp(scheduler, "fifo"))
 		hub->scheduler = FIFO;
 	else if (!strcmp(scheduler, "edf"))
@@ -87,30 +85,22 @@ static int	fill_hub(t_hub *hub, long *time_values, int *values,
  */
 int	parse_args(int argc, char **argv, t_hub *hub)
 {
-	long	time_values[6];
-	int		values[2];
-	int		tv_counter;
-	int		val_counter;
+	int		values[8];
+	int		counter;
 	int		i;
+	int		n;
 
 	if (argc != 9)
 		return (1);
 	i = 1;
-	tv_counter = 0;
-	val_counter = 0;
+	counter = 0;
 	while (i < argc - 1)
 	{
-		if (i == 1 || i == 6)
-		{
-			if (add_int_value(values, &val_counter, argv[i]))
-				return (1);
-		}
-		else
-		{
-			if (add_time_value(time_values, &tv_counter, argv[i]))
-				return (1);
-		}
+		n = ft_atoi(argv[i]);
+		if (n <= 0)
+			return (1);
+		values[counter++] = n;
 		i++;
 	}
-	return (fill_hub(hub, time_values, values, argv[8]));
+	return (fill_hub(hub, values, argv[8]));
 }
