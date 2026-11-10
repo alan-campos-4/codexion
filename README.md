@@ -3,7 +3,7 @@
 # Codexion
 
 <div align="center">
-    <img src="schema.svg" width="50%">
+   <img src="./assets/schema.svg" width="50%">
 </div>
 <br>
 
@@ -107,6 +107,9 @@ The bigger the difference the least likely burnout becomes.
 
 ```
 codexion/
+├── Makefile
+├── README.md
+├── .gitignore
 ├── coders/
 │   ├── include/
 │   │   └── codexion.h
@@ -121,10 +124,8 @@ codexion/
 │       ├── setup.c
 │       ├── utils_1.c
 │       └── utils_2.c
-├── Makefile
-├── README.md
-├── schema.svg
-└── .gitignore
+└── assests/
+    └── schema.svg
 ```
 
 #### Object Structure
@@ -233,33 +234,32 @@ A stop_flag is checked at multiple points in a coder's cycle, so they will stop 
 
 ## Thread synchronization mechanisms
 
-#### pthread_mutex_t lock (dongle)
+#### Per dongle
 
+- **pthread_mutex_t lock**:
 Protects a dongle's is_available, last_used_time, and its request heap. Any read or write to these fields happens strictly between a lock/unlock pair.
 
-#### pthread_cond_t cond (dongle)
-
+- **pthread_cond_t cond**:
 A coder waiting for a dongle sleeps on this condition variable via pthread_cond_wait, since becoming available again is partly time-driven (the cooldown expiring) rather than purely event-driven. Releasing a dongle calls pthread_cond_broadcast, so that every coder waiting on it re-checks the condition — necessary since more than one coder may be waiting on the same dongle, and only the one at the top of its priority heap should actually proceed.
 
-#### pthread_mutex_t lock (coder)
+#### Per coder
 
+- **pthread_mutex_t lock**:
 Protects last_compile_time and n_compiles, which are written by the coder's compile action and read concurrently by the monitor thread and by the EDF scheduler.
 
-#### pthread_mutex_t stop_lock
-
+- **pthread_mutex_t stop_lock**:
 Protects the stop_flag, only modifiable by the monitor thread and read repeatedly by every coder action.
 
-#### pthread_mutex_t log_lock
-
+- **pthread_mutex_t log_lock**:
 Protects the call to printf inside log_status, so two threads' log lines are never interleaved.
 
-#### pthread_mutex_t lock
+#### In hub
 
-...
+- **pthread_mutex_t lock**:
+Protects the hub's attributes when they need to be read by coder or dongle.
 
-#### pthread_cond_t cond
-
-...
+- **pthread_cond_t cond**:
+Used by the hub when waiting for all the actors to be ready. Broadcasted when it finisheds.
 
 #### Synchronization Barrier
 
