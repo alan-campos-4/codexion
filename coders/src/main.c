@@ -6,7 +6,7 @@
 /*   By: alvespin <alvespin@student.42malaga.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 13:34:23 by alvespin          #+#    #+#             */
-/*   Updated: 2026/10/27 17:48:15 by alvespin         ###   ########.fr       */
+/*   Updated: 2026/11/10 14:08:06 by alvespin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,23 +31,23 @@ static void	join_threads(pthread_t *ts, int n)
  * Initialize the coder's threads.
  * Delete what has been assigned if anything goes wrong.
  */
-static pthread_t	*create_coder_threads(t_coder *coders)
+static pthread_t	*create_coder_threads(t_hub *hub, t_coder *coders)
 {
 	pthread_t	*t;
 	int			i;
 
-	t = malloc(sizeof(pthread_t) * coders->hub->n_coders);
+	t = malloc(sizeof(pthread_t) * hub->n_coders);
 	if (!t)
 		return (NULL);
 	i = 0;
-	while (i < coders->hub->n_coders)
+	while (i < hub->n_coders)
 	{
-		if (pthread_create(t + i, NULL, &coder_routine, coders + i))
+		if (pthread_create(&t[i], NULL, &coder_routine, &coders[i]))
 		{
-			pthread_mutex_lock(&coders->hub->lock);
-			coders->hub->start_flag = 1;
-			coders->hub->stop_flag = 1;
-			pthread_mutex_unlock(&coders->hub->lock);
+			pthread_mutex_lock(&hub->stop_lock);
+			hub->start_flag = 1;
+			hub->stop_flag = 1;
+			pthread_mutex_unlock(&hub->stop_lock);
 			wakeup_coders(coders);
 			while (i-- > 0)
 				pthread_join(t[i], NULL);
@@ -61,15 +61,15 @@ static pthread_t	*create_coder_threads(t_coder *coders)
 /**
  * Return whether the creation of the monitor_thread thread was successful.
  */
-static int	create_monitor_thread(pthread_t *monitor_thread, t_hub *hub)
+static int	create_monitor_thread(t_hub *hub, pthread_t *monitor_thread)
 {
 	if (!pthread_create(monitor_thread, NULL, monitor_routine, hub))
 		return (0);
-	pthread_mutex_lock(&hub->lock);
+	pthread_mutex_lock(&hub->stop_lock);
 	hub->stop_flag = 1;
 	hub->start_flag = 1;
 	pthread_cond_broadcast(&hub->cond);
-	pthread_mutex_unlock(&hub->lock);
+	pthread_mutex_unlock(&hub->stop_lock);
 	return (1);
 }
 
@@ -83,10 +83,10 @@ static int	start_program(t_hub *hub, t_coder *coders)
 	pthread_t	monitor_thread;
 	int			monitor_status;
 
-	coder_threads = create_coder_threads(coders);
+	coder_threads = create_coder_threads(hub, coders);
 	if (!coder_threads)
 		return (1);
-	monitor_status = create_monitor_thread(&monitor_thread, hub);
+	monitor_status = create_monitor_thread(hub, &monitor_thread);
 	if (monitor_status == 0)
 	{
 		wait_for_start(hub);
